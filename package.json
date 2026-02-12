@@ -1,0 +1,7 @@
+{
+  "name": "it-platform-diploma",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ]
+}
