@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -12,8 +6,82 @@ datasource db {
   provider = "postgresql"
 }
 
+enum UserRole {
+  CUSTOMER
+  CONTRACTOR
+}
 
-model Test {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
+enum ProjectStatus {
+  OPEN
+  IN_WORK
+  DONE
+  CANCELED
+}
+
+enum BidStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model User {
+  id                  String    @id @default(uuid()) @db.Uuid
+  email               String    @unique
+  passwordHash        String
+  role                UserRole
+  name                String    @db.VarChar(100)
+  about               String?
+  skills              String[]  @default([])
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  customerProjects    Project[] @relation("CustomerProjects")
+  contractorBids      Bid[]     @relation("ContractorBids")
+  selectedForProjects Project[] @relation("SelectedContractorProjects")
+
+  @@index([role])
+  @@index([createdAt])
+}
+
+model Project {
+  id                   String        @id @default(uuid()) @db.Uuid
+  customerId           String        @db.Uuid
+  title                String        @db.VarChar(120)
+  description          String
+  budgetMin            Int?
+  budgetMax            Int?
+  status               ProjectStatus @default(OPEN)
+  selectedContractorId String?       @db.Uuid
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  customer           User   @relation("CustomerProjects", fields: [customerId], references: [id], onDelete: Cascade)
+  selectedContractor User?  @relation("SelectedContractorProjects", fields: [selectedContractorId], references: [id], onDelete: SetNull)
+  bids               Bid[]
+
+  @@index([customerId])
+  @@index([selectedContractorId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Bid {
+  id           String    @id @default(uuid()) @db.Uuid
+  projectId    String    @db.Uuid
+  contractorId String    @db.Uuid
+  price        Int
+  durationDays Int
+  coverLetter  String
+  status       BidStatus @default(PENDING)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  contractor User    @relation("ContractorBids", fields: [contractorId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, contractorId])
+  @@index([projectId])
+  @@index([contractorId])
+  @@index([status])
+  @@index([createdAt])
 }
