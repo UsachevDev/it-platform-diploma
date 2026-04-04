@@ -9,6 +9,7 @@ datasource db {
 enum UserRole {
   CUSTOMER
   CONTRACTOR
+  ADMIN
 }
 
 enum ProjectStatus {
@@ -61,8 +62,7 @@ model Project {
 
   @@index([customerId])
   @@index([selectedContractorId])
-  @@index([status])
-  @@index([createdAt])
+  @@index([status, createdAt])
 }
 
 model Bid {
@@ -82,6 +82,5 @@ model Bid {
   @@unique([projectId, contractorId])
   @@index([projectId])
   @@index([contractorId])
-  @@index([status])
-  @@index([createdAt])
+  @@index([status, createdAt])
 }
