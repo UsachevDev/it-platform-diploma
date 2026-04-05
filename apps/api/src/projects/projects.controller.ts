@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Query,
   Req,
@@ -17,6 +18,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { JwtPayload } from '../auth/types/jwt-payload.type';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { GetProjectsQueryDto } from './dto/get-projects-query.dto';
+import { UpdateProjectDto } from './dto/update-project.dto';
 import { ProjectsService } from './projects.service';
 
 type AuthenticatedRequest = Request & {
@@ -53,5 +55,17 @@ export class ProjectsController {
   @ApiOperation({ summary: 'Получить проект по id' })
   findOne(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.projectsService.findOne(id);
+  }
+
+  @Patch(':id')
+  @ApiOperation({
+    summary: 'Обновить проект (только владелец, только статус OPEN)',
+  })
+  update(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Req() req: AuthenticatedRequest,
+    @Body() dto: UpdateProjectDto,
+  ) {
+    return this.projectsService.update(id, req.user.sub, dto);
   }
 }

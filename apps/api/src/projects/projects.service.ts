@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -7,6 +8,7 @@ import { Prisma, ProjectStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { GetProjectsQueryDto } from './dto/get-projects-query.dto';
+import { UpdateProjectDto } from './dto/update-project.dto';
 import { projectSelect } from './projects.select';
 
 @Injectable()
@@ -84,6 +86,39 @@ export class ProjectsService {
   }
 
   async findOne(id: string) {
+    return this.getProjectOrThrow(id);
+  }
+
+  async update(id: string, userId: string, dto: UpdateProjectDto) {
+    const project = await this.getProjectOrThrow(id);
+
+    this.checkProjectOwner(project.customerId, userId);
+    this.ensureProjectStatus(project.status, [ProjectStatus.OPEN]);
+
+    const nextBudgetMin = dto.budgetMin ?? project.budgetMin;
+    const nextBudgetMax = dto.budgetMax ?? project.budgetMax;
+
+    if (
+      nextBudgetMin !== null &&
+      nextBudgetMax !== null &&
+      nextBudgetMax < nextBudgetMin
+    ) {
+      throw new BadRequestException('budgetMax не может быть меньше budgetMin');
+    }
+
+    return this.prisma.project.update({
+      where: { id },
+      data: {
+        ...(dto.title !== undefined && { title: dto.title }),
+        ...(dto.description !== undefined && { description: dto.description }),
+        ...(dto.budgetMin !== undefined && { budgetMin: dto.budgetMin }),
+        ...(dto.budgetMax !== undefined && { budgetMax: dto.budgetMax }),
+      },
+      select: projectSelect,
+    });
+  }
+
+  private async getProjectOrThrow(id: string) {
     const project = await this.prisma.project.findUnique({
       where: { id },
       select: projectSelect,
@@ -94,5 +129,24 @@ export class ProjectsService {
     }
 
     return project;
+  }
+
+  private checkProjectOwner(customerId: string, userId: string) {
+    if (customerId !== userId) {
+      throw new ForbiddenException(
+        'Только владелец проекта может выполнять это действие',
+      );
+    }
+  }
+
+  private ensureProjectStatus(
+    currentStatus: ProjectStatus,
+    allowedStatuses: ProjectStatus[],
+  ) {
+    if (!allowedStatuses.includes(currentStatus)) {
+      throw new BadRequestException(
+        `Действие недоступно для статуса ${currentStatus}`,
+      );
+    }
   }
 }
