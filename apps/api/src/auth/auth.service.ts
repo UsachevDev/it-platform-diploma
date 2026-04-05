@@ -6,24 +6,22 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { User, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { UsersRepository } from './repositories/users.repository';
 import { JwtPayload } from './types/jwt-payload.type';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly prismaService: PrismaService,
+    private readonly usersRepository: UsersRepository,
     private readonly jwtService: JwtService,
   ) {}
 
   async register(dto: RegisterDto) {
     const email = dto.email.toLowerCase().trim();
 
-    const existingUser = await this.prismaService.user.findUnique({
-      where: { email },
-    });
+    const existingUser = await this.usersRepository.findByEmail(email);
 
     if (existingUser) {
       throw new ConflictException('Пользователь с таким email уже существует');
@@ -31,13 +29,11 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
 
-    const user = await this.prismaService.user.create({
-      data: {
-        email,
-        passwordHash,
-        role: dto.role,
-        name: dto.name.trim(),
-      },
+    const user = await this.usersRepository.create({
+      email,
+      passwordHash,
+      role: dto.role,
+      name: dto.name.trim(),
     });
 
     return this.buildAuthResponse(user);
@@ -46,9 +42,7 @@ export class AuthService {
   async login(dto: LoginDto) {
     const email = dto.email.toLowerCase().trim();
 
-    const user = await this.prismaService.user.findUnique({
-      where: { email },
-    });
+    const user = await this.usersRepository.findByEmail(email);
 
     if (!user) {
       throw new UnauthorizedException('Неверный email или пароль');
@@ -67,9 +61,7 @@ export class AuthService {
   }
 
   async getMe(userId: string) {
-    const user = await this.prismaService.user.findUnique({
-      where: { id: userId },
-    });
+    const user = await this.usersRepository.findById(userId);
 
     if (!user) {
       throw new UnauthorizedException('Пользователь не найден');
