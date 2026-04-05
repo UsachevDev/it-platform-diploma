@@ -94,7 +94,8 @@ export class AuthService {
   }
 
   private excludePassword(user: User) {
-    const { passwordHash, ...safeUser } = user;
+    const safeUser = { ...user };
+    delete safeUser.passwordHash;
     return safeUser;
   }
 }
