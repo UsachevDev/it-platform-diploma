@@ -7,7 +7,10 @@ import {
 import { Prisma, ProjectStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProjectDto } from './dto/create-project.dto';
-import { GetProjectsQueryDto } from './dto/get-projects-query.dto';
+import {
+  GetProjectsQueryDto,
+  ProjectSortBy,
+} from './dto/get-projects-query.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { projectSelect } from './projects.select';
 
@@ -61,14 +64,26 @@ export class ProjectsService {
       ];
     }
 
+    if (query.budgetMin !== undefined) {
+      where.budgetMin = {
+        gte: query.budgetMin,
+      };
+    }
+
+    if (query.budgetMax !== undefined) {
+      where.budgetMax = {
+        lte: query.budgetMax,
+      };
+    }
+
+    const orderBy = this.getProjectsOrderBy(query.sortBy);
+
     const [items, total] = await this.prisma.$transaction([
       this.prisma.project.findMany({
         where,
         skip,
         take: limit,
-        orderBy: {
-          createdAt: 'desc',
-        },
+        orderBy,
         select: projectSelect,
       }),
       this.prisma.project.count({ where }),
@@ -177,6 +192,20 @@ export class ProjectsService {
       throw new BadRequestException(
         `Действие недоступно для статуса ${currentStatus}`,
       );
+    }
+  }
+
+  private getProjectsOrderBy(
+    sortBy?: ProjectSortBy,
+  ): Prisma.ProjectOrderByWithRelationInput[] {
+    switch (sortBy) {
+      case ProjectSortBy.BUDGET_ASC:
+        return [{ budgetMin: 'asc' }, { createdAt: 'desc' }];
+      case ProjectSortBy.BUDGET_DESC:
+        return [{ budgetMax: 'desc' }, { createdAt: 'desc' }];
+      case ProjectSortBy.NEWEST:
+      default:
+        return [{ createdAt: 'desc' }];
     }
   }
 }

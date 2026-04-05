@@ -3,6 +3,12 @@ import { ProjectStatus } from '@prisma/client';
 import { Transform, Type } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
+export enum ProjectSortBy {
+  NEWEST = 'newest',
+  BUDGET_ASC = 'budgetAsc',
+  BUDGET_DESC = 'budgetDesc',
+}
+
 export class GetProjectsQueryDto {
   @ApiPropertyOptional({
     type: Number,
@@ -42,4 +48,35 @@ export class GetProjectsQueryDto {
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
   search?: string;
+
+  @ApiPropertyOptional({
+    type: Number,
+    example: 30000,
+    description: 'Минимальный budgetMin проекта',
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  budgetMin?: number;
+
+  @ApiPropertyOptional({
+    type: Number,
+    example: 100000,
+    description: 'Максимальный budgetMax проекта',
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  budgetMax?: number;
+
+  @ApiPropertyOptional({
+    enum: ProjectSortBy,
+    example: ProjectSortBy.NEWEST,
+    default: ProjectSortBy.NEWEST,
+  })
+  @IsOptional()
+  @IsEnum(ProjectSortBy)
+  sortBy?: ProjectSortBy = ProjectSortBy.NEWEST;
 }
