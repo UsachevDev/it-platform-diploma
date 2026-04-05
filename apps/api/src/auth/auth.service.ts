@@ -93,9 +93,8 @@ export class AuthService {
     return this.jwtService.signAsync(payload);
   }
 
-  private excludePassword(user: User) {
-    const safeUser = { ...user };
-    delete safeUser.passwordHash;
+  private excludePassword(user: User): Omit<User, 'passwordHash'> {
+    const { passwordHash: _passwordHash, ...safeUser } = user;
     return safeUser;
   }
 }
