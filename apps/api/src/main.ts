@@ -9,6 +9,7 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
+      forbidNonWhitelisted: true,
       transform: true,
     }),
   );
@@ -26,10 +27,17 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
+  SwaggerModule.setup('api/docs', app, document);
 
-  await app.listen(process.env.PORT ?? 3000);
+  const port = 3000;
+  const host = '127.0.0.1';
+
+  await app.listen(port, host);
+
+  console.log(`API: http://${host}:${port}`);
+  console.log(`Swagger: http://${host}:${port}/api/docs`);
 }
+
 bootstrap().catch((err) => {
   console.error(err);
   process.exit(1);
