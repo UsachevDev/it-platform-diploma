@@ -68,4 +68,26 @@ export class ProjectsController {
   ) {
     return this.projectsService.update(id, req.user.sub, dto);
   }
+
+  @Post(':id/cancel')
+  @ApiOperation({
+    summary: 'Отменить проект (только владелец, только статус OPEN)',
+  })
+  cancel(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.projectsService.cancel(id, req.user.sub);
+  }
+
+  @Post(':id/done')
+  @ApiOperation({
+    summary: 'Завершить проект (только владелец, только статус IN_WORK)',
+  })
+  markDone(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.projectsService.markDone(id, req.user.sub);
+  }
 }

@@ -118,6 +118,36 @@ export class ProjectsService {
     });
   }
 
+  async cancel(id: string, userId: string) {
+    const project = await this.getProjectOrThrow(id);
+
+    this.checkProjectOwner(project.customerId, userId);
+    this.ensureProjectStatus(project.status, [ProjectStatus.OPEN]);
+
+    return this.prisma.project.update({
+      where: { id },
+      data: {
+        status: ProjectStatus.CANCELED,
+      },
+      select: projectSelect,
+    });
+  }
+
+  async markDone(id: string, userId: string) {
+    const project = await this.getProjectOrThrow(id);
+
+    this.checkProjectOwner(project.customerId, userId);
+    this.ensureProjectStatus(project.status, [ProjectStatus.IN_WORK]);
+
+    return this.prisma.project.update({
+      where: { id },
+      data: {
+        status: ProjectStatus.DONE,
+      },
+      select: projectSelect,
+    });
+  }
+
   private async getProjectOrThrow(id: string) {
     const project = await this.prisma.project.findUnique({
       where: { id },
