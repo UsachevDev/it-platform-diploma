@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Param,
   ParseUUIDPipe,
   Post,
@@ -17,12 +18,12 @@ import { BidsService } from './bids.service';
 
 @ApiTags('Bids')
 @ApiBearerAuth()
-@Controller('projects/:id/bids')
 @UseGuards(JwtAuthGuard, RolesGuard)
+@Controller()
 export class BidsController {
   constructor(private readonly bidsService: BidsService) {}
 
-  @Post()
+  @Post('projects/:id/bids')
   @Roles(UserRole.CONTRACTOR)
   @ApiOperation({ summary: 'Отправить отклик на проект' })
   create(
@@ -31,5 +32,44 @@ export class BidsController {
     @CurrentUser() currentUser: { sub: string; role: UserRole },
   ) {
     return this.bidsService.create(projectId, dto, currentUser);
+  }
+
+  @Get('projects/:id/bids')
+  @Roles(UserRole.CUSTOMER)
+  @ApiOperation({
+    summary: 'Получить отклики по проекту (только владелец проекта)',
+  })
+  findProjectBids(
+    @Param('id', ParseUUIDPipe) projectId: string,
+    @CurrentUser() currentUser: { sub: string; role: UserRole },
+  ) {
+    return this.bidsService.findProjectBids(projectId, currentUser);
+  }
+
+  @Get('bids/my')
+  @Roles(UserRole.CONTRACTOR)
+  @ApiOperation({ summary: 'Получить мои отклики' })
+  findMyBids(@CurrentUser() currentUser: { sub: string; role: UserRole }) {
+    return this.bidsService.findMyBids(currentUser);
+  }
+
+  @Post('bids/:id/accept')
+  @Roles(UserRole.CUSTOMER)
+  @ApiOperation({ summary: 'Принять отклик и выбрать исполнителя' })
+  acceptBid(
+    @Param('id', ParseUUIDPipe) bidId: string,
+    @CurrentUser() currentUser: { sub: string; role: UserRole },
+  ) {
+    return this.bidsService.acceptBid(bidId, currentUser);
+  }
+
+  @Post('bids/:id/reject')
+  @Roles(UserRole.CUSTOMER)
+  @ApiOperation({ summary: 'Отклонить отклик' })
+  rejectBid(
+    @Param('id', ParseUUIDPipe) bidId: string,
+    @CurrentUser() currentUser: { sub: string; role: UserRole },
+  ) {
+    return this.bidsService.rejectBid(bidId, currentUser);
   }
 }
