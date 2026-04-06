@@ -2,9 +2,11 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma, ProjectStatus } from '@prisma/client';
+import { buildPaginationMeta } from '../common/utils/pagination.util';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import {
@@ -16,14 +18,19 @@ import { projectSelect } from './projects.select';
 
 @Injectable()
 export class ProjectsService {
+  private readonly logger = new Logger(ProjectsService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   async create(customerId: string, dto: CreateProjectDto) {
     if (dto.budgetMax < dto.budgetMin) {
+      this.logger.warn(
+        `Create project failed: invalid budget range, customerId=${customerId}`,
+      );
       throw new BadRequestException('budgetMax не может быть меньше budgetMin');
     }
 
-    return this.prisma.project.create({
+    const project = await this.prisma.project.create({
       data: {
         customerId,
         title: dto.title,
@@ -34,6 +41,12 @@ export class ProjectsService {
       },
       select: projectSelect,
     });
+
+    this.logger.log(
+      `Project created: projectId=${project.id}, customerId=${customerId}`,
+    );
+
+    return project;
   }
 
   async findAll(query: GetProjectsQueryDto) {
@@ -78,7 +91,7 @@ export class ProjectsService {
 
     const orderBy = this.getProjectsOrderBy(query.sortBy);
 
-    const [items, total] = await this.prisma.$transaction([
+    const [projects, total] = await this.prisma.$transaction([
       this.prisma.project.findMany({
         where,
         skip,
@@ -89,14 +102,13 @@ export class ProjectsService {
       this.prisma.project.count({ where }),
     ]);
 
+    this.logger.log(
+      `Projects list requested: page=${page}, limit=${limit}, total=${total}`,
+    );
+
     return {
-      items,
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
+      data: projects,
+      meta: buildPaginationMeta(page, limit, total),
     };
   }
 
@@ -118,10 +130,13 @@ export class ProjectsService {
       nextBudgetMax !== null &&
       nextBudgetMax < nextBudgetMin
     ) {
+      this.logger.warn(
+        `Update project failed: invalid budget range, projectId=${id}, userId=${userId}`,
+      );
       throw new BadRequestException('budgetMax не может быть меньше budgetMin');
     }
 
-    return this.prisma.project.update({
+    const updatedProject = await this.prisma.project.update({
       where: { id },
       data: {
         ...(dto.title !== undefined && { title: dto.title }),
@@ -131,6 +146,10 @@ export class ProjectsService {
       },
       select: projectSelect,
     });
+
+    this.logger.log(`Project updated: projectId=${id}, userId=${userId}`);
+
+    return updatedProject;
   }
 
   async cancel(id: string, userId: string) {
@@ -139,13 +158,17 @@ export class ProjectsService {
     this.checkProjectOwner(project.customerId, userId);
     this.ensureProjectStatus(project.status, [ProjectStatus.OPEN]);
 
-    return this.prisma.project.update({
+    const canceledProject = await this.prisma.project.update({
       where: { id },
       data: {
         status: ProjectStatus.CANCELED,
       },
       select: projectSelect,
     });
+
+    this.logger.log(`Project canceled: projectId=${id}, userId=${userId}`);
+
+    return canceledProject;
   }
 
   async markDone(id: string, userId: string) {
@@ -154,13 +177,17 @@ export class ProjectsService {
     this.checkProjectOwner(project.customerId, userId);
     this.ensureProjectStatus(project.status, [ProjectStatus.IN_WORK]);
 
-    return this.prisma.project.update({
+    const doneProject = await this.prisma.project.update({
       where: { id },
       data: {
         status: ProjectStatus.DONE,
       },
       select: projectSelect,
     });
+
+    this.logger.log(`Project marked done: projectId=${id}, userId=${userId}`);
+
+    return doneProject;
   }
 
   private async getProjectOrThrow(id: string) {

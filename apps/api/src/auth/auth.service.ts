@@ -1,6 +1,7 @@
 import {
   ConflictException,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -13,6 +14,8 @@ import { JwtPayload } from './types/jwt-payload.type';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly jwtService: JwtService,
@@ -24,6 +27,7 @@ export class AuthService {
     const existingUser = await this.usersRepository.findByEmail(email);
 
     if (existingUser) {
+      this.logger.warn(`Register failed: email already exists, email=${email}`);
       throw new ConflictException('Пользователь с таким email уже существует');
     }
 
@@ -36,6 +40,8 @@ export class AuthService {
       name: dto.name.trim(),
     });
 
+    this.logger.log(`User registered: userId=${user.id}, email=${user.email}`);
+
     return this.buildAuthResponse(user);
   }
 
@@ -45,6 +51,7 @@ export class AuthService {
     const user = await this.usersRepository.findByEmail(email);
 
     if (!user) {
+      this.logger.warn(`Login failed: user not found, email=${email}`);
       throw new UnauthorizedException('Неверный email или пароль');
     }
 
@@ -54,8 +61,11 @@ export class AuthService {
     );
 
     if (!isPasswordValid) {
+      this.logger.warn(`Login failed: invalid password, email=${email}`);
       throw new UnauthorizedException('Неверный email или пароль');
     }
+
+    this.logger.log(`User logged in: userId=${user.id}, email=${user.email}`);
 
     return this.buildAuthResponse(user);
   }
@@ -64,6 +74,7 @@ export class AuthService {
     const user = await this.usersRepository.findById(userId);
 
     if (!user) {
+      this.logger.warn(`GetMe failed: user not found, userId=${userId}`);
       throw new UnauthorizedException('Пользователь не найден');
     }
 

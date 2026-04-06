@@ -11,7 +11,17 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -34,6 +44,12 @@ export class ProjectsController {
 
   @Post()
   @ApiOperation({ summary: 'Создать проект' })
+  @ApiCreatedResponse({ description: 'Проект успешно создан' })
+  @ApiBadRequestResponse({ description: 'Некорректные данные проекта' })
+  @ApiForbiddenResponse({
+    description: 'Только заказчик может создавать проекты',
+  })
+  @ApiUnauthorizedResponse({ description: 'Пользователь не авторизован' })
   async create(
     @Req() req: AuthenticatedRequest,
     @Body() dto: CreateProjectDto,
@@ -47,12 +63,18 @@ export class ProjectsController {
 
   @Get()
   @ApiOperation({ summary: 'Получить список проектов' })
+  @ApiOkResponse({ description: 'Список проектов успешно получен' })
+  @ApiUnauthorizedResponse({ description: 'Пользователь не авторизован' })
   findAll(@Query() query: GetProjectsQueryDto) {
     return this.projectsService.findAll(query);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Получить проект по id' })
+  @ApiParam({ name: 'id', description: 'UUID проекта' })
+  @ApiOkResponse({ description: 'Проект успешно получен' })
+  @ApiBadRequestResponse({ description: 'Некорректный id проекта' })
+  @ApiUnauthorizedResponse({ description: 'Пользователь не авторизован' })
   findOne(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.projectsService.findOne(id);
   }
@@ -61,6 +83,13 @@ export class ProjectsController {
   @ApiOperation({
     summary: 'Обновить проект (только владелец, только статус OPEN)',
   })
+  @ApiParam({ name: 'id', description: 'UUID проекта' })
+  @ApiOkResponse({ description: 'Проект успешно обновлён' })
+  @ApiBadRequestResponse({ description: 'Некорректные данные или статус' })
+  @ApiForbiddenResponse({
+    description: 'Только владелец проекта может обновлять проект',
+  })
+  @ApiUnauthorizedResponse({ description: 'Пользователь не авторизован' })
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Req() req: AuthenticatedRequest,
@@ -73,6 +102,13 @@ export class ProjectsController {
   @ApiOperation({
     summary: 'Отменить проект (только владелец, только статус OPEN)',
   })
+  @ApiParam({ name: 'id', description: 'UUID проекта' })
+  @ApiOkResponse({ description: 'Проект успешно отменён' })
+  @ApiBadRequestResponse({ description: 'Некорректный статус проекта' })
+  @ApiForbiddenResponse({
+    description: 'Только владелец проекта может отменять проект',
+  })
+  @ApiUnauthorizedResponse({ description: 'Пользователь не авторизован' })
   cancel(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Req() req: AuthenticatedRequest,
@@ -84,6 +120,13 @@ export class ProjectsController {
   @ApiOperation({
     summary: 'Завершить проект (только владелец, только статус IN_WORK)',
   })
+  @ApiParam({ name: 'id', description: 'UUID проекта' })
+  @ApiOkResponse({ description: 'Проект успешно завершён' })
+  @ApiBadRequestResponse({ description: 'Некорректный статус проекта' })
+  @ApiForbiddenResponse({
+    description: 'Только владелец проекта может завершать проект',
+  })
+  @ApiUnauthorizedResponse({ description: 'Пользователь не авторизован' })
   markDone(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Req() req: AuthenticatedRequest,

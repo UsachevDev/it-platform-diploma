@@ -1,7 +1,8 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { NestFactory } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AppModule } from './app.module';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,14 +15,18 @@ async function bootstrap() {
     }),
   );
 
+  app.useGlobalFilters(new HttpExceptionFilter());
+
   app.enableCors({
     origin: true,
     credentials: true,
   });
 
   const config = new DocumentBuilder()
-    .setTitle('Diploma API')
-    .setDescription('IT Platform API')
+    .setTitle('IT Platform API')
+    .setDescription(
+      'API платформы для взаимодействия заказчиков и исполнителей IT-проектов',
+    )
     .setVersion('1.0')
     .addBearerAuth()
     .build();
@@ -30,12 +35,11 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, document);
 
   const port = 3000;
-  const host = '127.0.0.1';
 
-  await app.listen(port, host);
+  await app.listen(port);
 
-  console.log(`API: http://${host}:${port}`);
-  console.log(`Swagger: http://${host}:${port}/api/docs`);
+  console.log(`API: http://localhost:${port}`);
+  console.log(`Swagger: http://localhost:${port}/api/docs`);
 }
 
 bootstrap().catch((err) => {

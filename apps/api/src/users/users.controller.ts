@@ -35,10 +35,12 @@ type AuthRequest = Request & {
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @ApiOperation({ summary: 'Get current user profile' })
+  @ApiOperation({ summary: 'Получить профиль текущего пользователя' })
   @ApiBearerAuth()
-  @ApiOkResponse({ description: 'Current user profile returned successfully' })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiOkResponse({
+    description: 'Профиль текущего пользователя успешно получен',
+  })
+  @ApiUnauthorizedResponse({ description: 'Пользователь не авторизован' })
   @UseGuards(JwtAuthGuard)
   @Get('me')
   getMe(@Req() req: AuthRequest) {
@@ -47,10 +49,10 @@ export class UsersController {
     return this.usersService.getMe(userId as string);
   }
 
-  @ApiOperation({ summary: 'Update current user profile' })
+  @ApiOperation({ summary: 'Обновить профиль текущего пользователя' })
   @ApiBearerAuth()
-  @ApiOkResponse({ description: 'Profile updated successfully' })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiOkResponse({ description: 'Профиль успешно обновлён' })
+  @ApiUnauthorizedResponse({ description: 'Пользователь не авторизован' })
   @UseGuards(JwtAuthGuard)
   @Patch('me')
   updateMe(@Req() req: AuthRequest, @Body() dto: UpdateUserDto) {
@@ -59,14 +61,16 @@ export class UsersController {
     return this.usersService.updateMe(userId as string, dto);
   }
 
-  @ApiOperation({ summary: 'Get public user profile by id' })
+  @ApiOperation({ summary: 'Получить публичный профиль пользователя по id' })
   @ApiParam({
     name: 'id',
     example: 'cm1abc123xyz',
     description: 'User id',
   })
-  @ApiOkResponse({ description: 'User profile returned successfully' })
-  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiOkResponse({
+    description: 'Публичный профиль пользователя успешно получен',
+  })
+  @ApiNotFoundResponse({ description: 'Пользователь не найден' })
   @Get(':id')
   getById(@Param('id') id: string) {
     return this.usersService.getById(id);
