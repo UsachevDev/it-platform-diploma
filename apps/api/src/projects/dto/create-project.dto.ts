@@ -2,13 +2,16 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import { IsInt, IsNotEmpty, IsString, Length, Max, Min } from 'class-validator';
 
+const trimString = ({ value }: { value: unknown }): unknown =>
+  typeof value === 'string' ? value.trim() : value;
+
 export class CreateProjectDto {
   @ApiProperty({
     example: 'Разработка MVP веб-платформы',
     minLength: 3,
     maxLength: 120,
   })
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @Transform(trimString)
   @IsString()
   @IsNotEmpty()
   @Length(3, 120)
@@ -20,7 +23,7 @@ export class CreateProjectDto {
     minLength: 10,
     maxLength: 5000,
   })
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @Transform(trimString)
   @IsString()
   @IsNotEmpty()
   @Length(10, 5000)
