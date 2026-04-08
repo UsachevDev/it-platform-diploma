@@ -46,15 +46,21 @@ jobs:
 
       - name: Generate Prisma client
         working-directory: apps/api
-        run: npx prisma generate
+        run: npm run prisma:generate
         env:
           DATABASE_URL: postgresql://diploma:diploma@127.0.0.1:5432/diploma_test?schema=public
+          SHADOW_DATABASE_URL: postgresql://diploma:diploma@127.0.0.1:5432/diploma_shadow?schema=public
+
+      - name: Create shadow database
+        run: |
+          PGPASSWORD=diploma psql -h 127.0.0.1 -U diploma -d postgres -c "CREATE DATABASE diploma_shadow;" || true
 
       - name: Push test schema
         working-directory: apps/api
         run: npx prisma db push
         env:
           DATABASE_URL: postgresql://diploma:diploma@127.0.0.1:5432/diploma_test?schema=public
+          SHADOW_DATABASE_URL: postgresql://diploma:diploma@127.0.0.1:5432/diploma_shadow?schema=public
 
       - name: Lint API
         working-directory: apps/api
