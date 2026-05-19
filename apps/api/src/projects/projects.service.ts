@@ -5,7 +5,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, ProjectStatus } from '@prisma/client';
+import { Prisma, ProjectStatus, UserRole } from '@prisma/client';
 import { buildPaginationMeta } from '../common/utils/pagination.util';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -49,7 +49,10 @@ export class ProjectsService {
     return project;
   }
 
-  async findAll(query: GetProjectsQueryDto) {
+  async findAll(
+    query: GetProjectsQueryDto,
+    currentUser?: { sub: string; role: UserRole },
+  ) {
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
     const skip = (page - 1) * limit;
@@ -58,6 +61,30 @@ export class ProjectsService {
 
     if (query.status) {
       where.status = query.status;
+    }
+
+    if (query.mine) {
+      if (!currentUser) {
+        throw new ForbiddenException(
+          'Фильтр mine доступен только авторизованным пользователям',
+        );
+      }
+      if (currentUser.role === UserRole.CUSTOMER) {
+        where.customerId = currentUser.sub;
+      } else if (currentUser.role === UserRole.CONTRACTOR) {
+        where.selectedContractorId = currentUser.sub;
+      }
+    }
+
+    if (query.responded) {
+      if (!currentUser || currentUser.role !== UserRole.CONTRACTOR) {
+        throw new ForbiddenException(
+          'Фильтр responded доступен только исполнителям',
+        );
+      }
+      where.bids = {
+        some: { contractorId: currentUser.sub },
+      };
     }
 
     if (query.search) {

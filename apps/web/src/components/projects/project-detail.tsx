@@ -112,15 +112,24 @@ export function ProjectDetail({ projectId }: ProjectDetailProps) {
   const canCancel = isOwner && project.status === "OPEN";
   const canComplete = isOwner && project.status === "IN_WORK";
 
+  function handleBackToList() {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/projects");
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
-        <Link
-          href="/projects"
+        <button
+          type="button"
+          onClick={handleBackToList}
           className="inline-flex items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground"
         >
           <ArrowLeft className="h-3.5 w-3.5" />К списку проектов
-        </Link>
+        </button>
       </div>
 
       <div className="rounded-[28px] border border-black/5 bg-white p-6 shadow-sm md:p-8">

@@ -50,6 +50,8 @@ export type GetProjectsQuery = {
   budgetMin?: number;
   budgetMax?: number;
   sortBy?: ProjectSortBy;
+  mine?: boolean;
+  responded?: boolean;
 };
 
 export type CreateProjectDto = {

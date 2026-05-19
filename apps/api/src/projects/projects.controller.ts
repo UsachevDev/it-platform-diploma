@@ -65,8 +65,14 @@ export class ProjectsController {
   @ApiOperation({ summary: 'Получить список проектов' })
   @ApiOkResponse({ description: 'Список проектов успешно получен' })
   @ApiUnauthorizedResponse({ description: 'Пользователь не авторизован' })
-  findAll(@Query() query: GetProjectsQueryDto) {
-    return this.projectsService.findAll(query);
+  findAll(
+    @Query() query: GetProjectsQueryDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.projectsService.findAll(query, {
+      sub: req.user.sub,
+      role: req.user.role,
+    });
   }
 
   @Get(':id')
