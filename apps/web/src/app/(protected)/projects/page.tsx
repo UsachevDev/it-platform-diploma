@@ -1,10 +1,12 @@
-import { ComingSoonPage } from "@/components/common/coming-soon-page";
+import { Suspense } from "react";
+
+import { PageSkeleton } from "@/components/common/page-skeleton";
+import { ProjectsList } from "@/components/projects/projects-list";
 
 export default function ProjectsPage() {
   return (
-    <ComingSoonPage
-      title="Раздел проектов"
-      description="Здесь будет список проектов, фильтры, карточки, детальные страницы и действия заказчика по управлению проектами."
-    />
+    <Suspense fallback={<PageSkeleton cards={6} />}>
+      <ProjectsList />
+    </Suspense>
   );
 }
