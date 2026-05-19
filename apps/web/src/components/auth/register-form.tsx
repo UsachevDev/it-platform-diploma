@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, ArrowRight } from "lucide-react";
-import { isAxiosError } from "axios";
+import { getApiErrorMessage } from "@/lib/api/errors";
 import type { UserRole } from "@/lib/auth/auth-types";
 import { useAuth } from "@/providers/auth-provider";
 
@@ -47,22 +47,6 @@ export function RegisterForm() {
     return "";
   }
 
-  function getApiErrorMessage(error: unknown) {
-    if (isAxiosError(error)) {
-      const message = error.response?.data?.message;
-
-      if (Array.isArray(message) && message.length > 0) {
-        return String(message[0]);
-      }
-
-      if (typeof message === "string") {
-        return message;
-      }
-    }
-
-    return "Не удалось зарегистрироваться.";
-  }
-
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -86,7 +70,9 @@ export function RegisterForm() {
 
       router.push("/dashboard");
     } catch (submitError) {
-      setError(getApiErrorMessage(submitError));
+      setError(
+        getApiErrorMessage(submitError, "Не удалось зарегистрироваться."),
+      );
     } finally {
       setIsSubmitting(false);
     }
