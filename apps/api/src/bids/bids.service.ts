@@ -8,6 +8,7 @@ import {
 import { BidStatus, ProjectStatus, UserRole } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBidDto } from './dto/create-bid.dto';
+import { UpdateBidDto } from './dto/update-bid.dto';
 
 type CurrentUser = {
   sub: string;
@@ -358,5 +359,108 @@ export class BidsService {
     );
 
     return rejectedBid;
+  }
+
+  async update(bidId: string, dto: UpdateBidDto, currentUser: CurrentUser) {
+    const userId = this.getUserId(currentUser);
+
+    if (currentUser.role !== UserRole.CONTRACTOR) {
+      throw new ForbiddenException(
+        'Только исполнитель может изменять свой отклик',
+      );
+    }
+
+    const bid = await this.prisma.bid.findUnique({
+      where: { id: bidId },
+      include: { project: true },
+    });
+
+    if (!bid) {
+      throw new NotFoundException('Отклик не найден');
+    }
+
+    if (bid.contractorId !== userId) {
+      throw new ForbiddenException('Вы не можете изменять чужой отклик');
+    }
+
+    if (bid.status !== BidStatus.PENDING) {
+      throw new ConflictException(
+        'Изменять можно только отклик со статусом PENDING',
+      );
+    }
+
+    if (bid.project.status !== ProjectStatus.OPEN) {
+      throw new ConflictException(
+        'Изменять отклик можно только пока проект открыт',
+      );
+    }
+
+    const updatedBid = await this.prisma.bid.update({
+      where: { id: bidId },
+      data: {
+        ...(dto.price !== undefined && { price: dto.price }),
+        ...(dto.durationDays !== undefined && {
+          durationDays: dto.durationDays,
+        }),
+        ...(dto.coverLetter !== undefined && {
+          coverLetter: dto.coverLetter.trim(),
+        }),
+      },
+      include: {
+        project: {
+          select: {
+            id: true,
+            title: true,
+            status: true,
+          },
+        },
+      },
+    });
+
+    this.logger.log(
+      `Bid updated: bidId=${bidId}, projectId=${bid.projectId}, userId=${userId}`,
+    );
+
+    return updatedBid;
+  }
+
+  async remove(bidId: string, currentUser: CurrentUser) {
+    const userId = this.getUserId(currentUser);
+
+    if (currentUser.role !== UserRole.CONTRACTOR) {
+      throw new ForbiddenException(
+        'Только исполнитель может удалить свой отклик',
+      );
+    }
+
+    const bid = await this.prisma.bid.findUnique({
+      where: { id: bidId },
+      include: { project: true },
+    });
+
+    if (!bid) {
+      throw new NotFoundException('Отклик не найден');
+    }
+
+    if (bid.contractorId !== userId) {
+      throw new ForbiddenException('Вы не можете удалить чужой отклик');
+    }
+
+    if (
+      bid.status === BidStatus.ACCEPTED &&
+      bid.project.status === ProjectStatus.IN_WORK
+    ) {
+      throw new ConflictException(
+        'Нельзя удалить принятый отклик, пока проект в работе',
+      );
+    }
+
+    await this.prisma.bid.delete({ where: { id: bidId } });
+
+    this.logger.log(
+      `Bid deleted: bidId=${bidId}, projectId=${bid.projectId}, status=${bid.status}, userId=${userId}`,
+    );
+
+    return { message: 'Отклик удалён' };
   }
 }
