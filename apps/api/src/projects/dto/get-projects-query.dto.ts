@@ -1,7 +1,22 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { ProjectStatus } from '@prisma/client';
 import { Transform, Type } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+} from 'class-validator';
+
+const toBoolean = ({ value }: { value: unknown }): unknown => {
+  if (typeof value === 'boolean') return value;
+  if (value === 'true' || value === '1' || value === 1) return true;
+  if (value === 'false' || value === '0' || value === 0) return false;
+  return value;
+};
 
 export enum ProjectSortBy {
   NEWEST = 'newest',
@@ -79,4 +94,24 @@ export class GetProjectsQueryDto {
   @IsOptional()
   @IsEnum(ProjectSortBy)
   sortBy?: ProjectSortBy = ProjectSortBy.NEWEST;
+
+  @ApiPropertyOptional({
+    type: Boolean,
+    description:
+      'Только проекты текущего пользователя (CUSTOMER → созданные, CONTRACTOR → где он принятый исполнитель)',
+  })
+  @IsOptional()
+  @Transform(toBoolean)
+  @IsBoolean()
+  mine?: boolean;
+
+  @ApiPropertyOptional({
+    type: Boolean,
+    description:
+      'Только для CONTRACTOR: проекты, на которые пользователь отправил отклик',
+  })
+  @IsOptional()
+  @Transform(toBoolean)
+  @IsBoolean()
+  responded?: boolean;
 }
