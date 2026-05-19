@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -25,6 +27,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { BidsService } from './bids.service';
 import { CreateBidDto } from './dto/create-bid.dto';
+import { UpdateBidDto } from './dto/update-bid.dto';
 
 @ApiTags('Bids')
 @ApiBearerAuth()
@@ -121,5 +124,49 @@ export class BidsController {
     @CurrentUser() currentUser: { sub: string; role: UserRole },
   ) {
     return this.bidsService.rejectBid(bidId, currentUser);
+  }
+
+  @Patch('bids/:id')
+  @Roles(UserRole.CONTRACTOR)
+  @ApiOperation({
+    summary: 'Изменить свой отклик (только PENDING, проект OPEN)',
+  })
+  @ApiParam({ name: 'id', description: 'UUID отклика' })
+  @ApiOkResponse({ description: 'Отклик успешно обновлён' })
+  @ApiBadRequestResponse({ description: 'Некорректные данные отклика' })
+  @ApiUnauthorizedResponse({ description: 'Пользователь не авторизован' })
+  @ApiForbiddenResponse({
+    description: 'Только автор может изменить отклик',
+  })
+  @ApiConflictResponse({
+    description: 'Изменять можно только PENDING-отклик на открытом проекте',
+  })
+  update(
+    @Param('id', ParseUUIDPipe) bidId: string,
+    @Body() dto: UpdateBidDto,
+    @CurrentUser() currentUser: { sub: string; role: UserRole },
+  ) {
+    return this.bidsService.update(bidId, dto, currentUser);
+  }
+
+  @Delete('bids/:id')
+  @Roles(UserRole.CONTRACTOR)
+  @ApiOperation({
+    summary: 'Удалить свой отклик (только PENDING, проект OPEN)',
+  })
+  @ApiParam({ name: 'id', description: 'UUID отклика' })
+  @ApiOkResponse({ description: 'Отклик успешно удалён' })
+  @ApiUnauthorizedResponse({ description: 'Пользователь не авторизован' })
+  @ApiForbiddenResponse({
+    description: 'Только автор может удалить отклик',
+  })
+  @ApiConflictResponse({
+    description: 'Удалить можно только PENDING-отклик на открытом проекте',
+  })
+  remove(
+    @Param('id', ParseUUIDPipe) bidId: string,
+    @CurrentUser() currentUser: { sub: string; role: UserRole },
+  ) {
+    return this.bidsService.remove(bidId, currentUser);
   }
 }

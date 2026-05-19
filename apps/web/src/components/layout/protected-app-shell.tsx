@@ -12,7 +12,14 @@ import {
 import { useAuth } from "@/providers/auth-provider";
 import { getRoleLabel } from "@/lib/auth/role-labels";
 
-const navItems = [
+type NavItem = {
+  href: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  contractorOnly?: boolean;
+};
+
+const navItems: NavItem[] = [
   {
     href: "/dashboard",
     label: "Главная",
@@ -27,6 +34,7 @@ const navItems = [
     href: "/bids",
     label: "Отклики",
     icon: BriefcaseBusiness,
+    contractorOnly: true,
   },
   {
     href: "/profile",
@@ -39,6 +47,10 @@ export function ProtectedAppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
+
+  const visibleNavItems = navItems.filter(
+    (item) => !item.contractorOnly || user?.role === "CONTRACTOR",
+  );
 
   function isActive(href: string) {
     return pathname === href || pathname.startsWith(`${href}/`);
@@ -67,7 +79,7 @@ export function ProtectedAppShell({ children }: { children: React.ReactNode }) {
           </Link>
 
           <nav className="hidden items-center gap-1 md:flex">
-            {navItems.map((item) => {
+            {visibleNavItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.href);
 
@@ -114,7 +126,7 @@ export function ProtectedAppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-4 pb-4 md:hidden lg:px-8">
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.href);
 

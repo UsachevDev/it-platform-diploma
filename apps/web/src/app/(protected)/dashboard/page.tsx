@@ -53,9 +53,9 @@ export default function DashboardPage() {
           icon: BriefcaseBusiness,
         },
         {
-          title: "Я откликнулся",
-          description: "Проекты, на которые вы отправили отклик.",
-          href: "/projects?responded=1",
+          title: "Мои отклики",
+          description: "Статусы отправленных откликов.",
+          href: "/bids",
           icon: BriefcaseBusiness,
         },
       ];

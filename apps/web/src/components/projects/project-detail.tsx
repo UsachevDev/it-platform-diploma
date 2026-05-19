@@ -15,6 +15,8 @@ import {
   XCircle,
 } from "lucide-react";
 
+import { BidsList } from "@/components/bids/bids-list";
+import { ContractorBidSection } from "@/components/bids/contractor-bid-section";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
 import { EmptyState } from "@/components/common/empty-state";
 import { ErrorState } from "@/components/common/error-state";
@@ -232,17 +234,15 @@ export function ProjectDetail({ projectId }: ProjectDetailProps) {
         </div>
       </div>
 
-      {isContractor && project.status === "OPEN" && (
-        <div className="rounded-[28px] border border-dashed border-black/10 bg-white p-6 text-sm text-muted-foreground shadow-sm">
-          Раздел откликов скоро появится — форма отправки отклика будет здесь.
-        </div>
+      {isContractor && !isOwner && (
+        <ContractorBidSection
+          projectId={project.id}
+          projectStatus={project.status}
+        />
       )}
 
       {isOwner && (
-        <div className="rounded-[28px] border border-dashed border-black/10 bg-white p-6 text-sm text-muted-foreground shadow-sm">
-          Список откликов на проект скоро появится — здесь вы сможете
-          просматривать заявки исполнителей и принимать их.
-        </div>
+        <BidsList projectId={project.id} projectStatus={project.status} />
       )}
 
       <button
