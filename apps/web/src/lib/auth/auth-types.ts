@@ -6,7 +6,7 @@ export type AuthUser = {
   name: string;
   role: UserRole;
   about?: string | null;
-  skills?: string | null;
+  skills?: string[];
   createdAt?: string;
   updatedAt?: string;
 };
