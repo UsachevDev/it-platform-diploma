@@ -3,6 +3,7 @@
 ## Stack
 
 Backend:
+
 - NestJS
 - Prisma
 - PostgreSQL
@@ -10,6 +11,7 @@ Backend:
 - Swagger
 
 Frontend:
+
 - Next.js (App Router)
 - TypeScript
 - TailwindCSS
@@ -21,8 +23,8 @@ Frontend:
 Monorepo:
 
 apps/
-  api/
-  web/
+api/
+web/
 
 ## MVP Features
 
