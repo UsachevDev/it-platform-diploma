@@ -241,8 +241,6 @@ export function ProjectsList() {
           <Pagination
             page={data.meta.page}
             totalPages={data.meta.totalPages}
-            hasNext={data.meta.hasNext}
-            hasPrev={data.meta.hasPrev}
             onChange={(nextPage) =>
               updateParams({
                 page: nextPage === 1 ? undefined : String(nextPage),
@@ -258,19 +256,14 @@ export function ProjectsList() {
 type PaginationProps = {
   page: number;
   totalPages: number;
-  hasNext: boolean;
-  hasPrev: boolean;
   onChange: (page: number) => void;
 };
 
-function Pagination({
-  page,
-  totalPages,
-  hasNext,
-  hasPrev,
-  onChange,
-}: PaginationProps) {
+function Pagination({ page, totalPages, onChange }: PaginationProps) {
   if (totalPages <= 1) return null;
+
+  const hasPrev = page > 1;
+  const hasNext = page < totalPages;
 
   return (
     <div className="flex items-center justify-center gap-2 pt-2">
