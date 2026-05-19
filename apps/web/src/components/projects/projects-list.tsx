@@ -4,11 +4,12 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Plus, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Search, X } from "lucide-react";
 
 import { EmptyState } from "@/components/common/empty-state";
 import { ErrorState } from "@/components/common/error-state";
 import { PageSkeleton } from "@/components/common/page-skeleton";
+import { SelectMenu } from "@/components/common/select-menu";
 import { ProjectCard } from "@/components/projects/project-card";
 import {
   type GetProjectsQuery,
@@ -67,6 +68,8 @@ export function ProjectsList() {
   const sortBy = parseSort(searchParams.get("sort"));
   const page = parsePage(searchParams.get("page"));
   const searchParam = searchParams.get("search") ?? "";
+  const mine = searchParams.get("mine") === "1";
+  const responded = searchParams.get("responded") === "1";
 
   const [searchInput, setSearchInput] = useState(searchParam);
 
@@ -111,8 +114,10 @@ export function ProjectsList() {
       status,
       sortBy,
       search: searchParam.trim() || undefined,
+      mine: mine || undefined,
+      responded: responded || undefined,
     }),
-    [page, status, sortBy, searchParam],
+    [page, status, sortBy, searchParam, mine, responded],
   );
 
   const { data, isLoading, isError, refetch, isFetching } = useQuery({
@@ -123,13 +128,35 @@ export function ProjectsList() {
 
   const isCustomer = user?.role === "CUSTOMER";
 
+  const heading = responded
+    ? {
+        title: "Я откликнулся",
+        description: "Проекты, на которые вы отправили отклик.",
+      }
+    : mine
+      ? isCustomer
+        ? {
+            title: "Мои проекты",
+            description: "Проекты, которые вы создали.",
+          }
+        : {
+            title: "Мои проекты",
+            description: "Задачи, где вы выбраны исполнителем.",
+          }
+      : {
+          title: "Проекты",
+          description: isCustomer
+            ? "Каталог всех проектов на платформе."
+            : "Найдите подходящий проект и отправьте отклик.",
+        };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Проекты</h1>
+          <h1 className="text-2xl font-semibold">{heading.title}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Найдите подходящий проект или создайте свой
+            {heading.description}
           </p>
         </div>
 
@@ -149,28 +176,85 @@ export function ProjectsList() {
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
             <input
-              type="search"
+              type="text"
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
               placeholder="Поиск по названию или описанию"
-              className="h-11 w-full rounded-full border border-black/10 bg-white pl-11 pr-4 text-sm outline-none transition placeholder:text-zinc-400 focus:border-black"
+              className="h-11 w-full rounded-full border border-black/10 bg-white pl-11 pr-11 text-sm outline-none transition placeholder:text-zinc-400 focus:border-black [&::-webkit-search-cancel-button]:hidden"
             />
+            {searchInput ? (
+              <button
+                type="button"
+                onClick={() => setSearchInput("")}
+                aria-label="Очистить поиск"
+                className="absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-zinc-400 transition hover:bg-black/5 hover:text-foreground"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            ) : null}
           </div>
 
-          <select
+          <SelectMenu
+            className="lg:w-64"
+            ariaLabel="Сортировка"
             value={sortBy}
-            onChange={(event) =>
-              updateParams({ sort: event.target.value, page: undefined })
-            }
-            className="h-11 rounded-full border border-black/10 bg-white px-4 text-sm outline-none transition focus:border-black"
-          >
-            {SORT_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            options={SORT_OPTIONS}
+            onChange={(next) => updateParams({ sort: next, page: undefined })}
+          />
         </div>
+
+        {user ? (
+          <div className="flex flex-wrap gap-2 border-b border-black/5 pb-3">
+            {(() => {
+              const viewModes: Array<{
+                key: "all" | "mine" | "responded";
+                label: string;
+                visible: boolean;
+              }> = [
+                { key: "all", label: "Все проекты", visible: true },
+                {
+                  key: "mine",
+                  label: isCustomer ? "Мои проекты" : "Я исполнитель",
+                  visible: true,
+                },
+                {
+                  key: "responded",
+                  label: "Я откликнулся",
+                  visible: !isCustomer,
+                },
+              ];
+
+              const currentMode = responded ? "responded" : mine ? "mine" : "all";
+
+              return viewModes
+                .filter((m) => m.visible)
+                .map((mode) => {
+                  const active = currentMode === mode.key;
+                  return (
+                    <button
+                      key={mode.key}
+                      type="button"
+                      onClick={() =>
+                        updateParams({
+                          mine: mode.key === "mine" ? "1" : undefined,
+                          responded:
+                            mode.key === "responded" ? "1" : undefined,
+                          page: undefined,
+                        })
+                      }
+                      className={`rounded-full border px-4 py-1.5 text-xs font-medium transition ${
+                        active
+                          ? "border-black bg-black text-white"
+                          : "border-black/10 bg-white text-muted-foreground hover:border-black/20 hover:text-foreground"
+                      }`}
+                    >
+                      {mode.label}
+                    </button>
+                  );
+                });
+            })()}
+          </div>
+        ) : null}
 
         <div className="flex flex-wrap gap-2">
           {STATUS_FILTERS.map((filter) => {
