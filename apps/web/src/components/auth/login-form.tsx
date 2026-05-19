@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, ArrowRight } from "lucide-react";
-import { isAxiosError } from "axios";
+import { getApiErrorMessage } from "@/lib/api/errors";
 import { useAuth } from "@/providers/auth-provider";
 
 export function LoginForm() {
@@ -39,22 +39,6 @@ export function LoginForm() {
     return "";
   }
 
-  function getApiErrorMessage(error: unknown) {
-    if (isAxiosError(error)) {
-      const message = error.response?.data?.message;
-
-      if (Array.isArray(message) && message.length > 0) {
-        return String(message[0]);
-      }
-
-      if (typeof message === "string") {
-        return message;
-      }
-    }
-
-    return "Не удалось войти. Проверьте email и пароль.";
-  }
-
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -76,7 +60,12 @@ export function LoginForm() {
 
       router.push("/dashboard");
     } catch (submitError) {
-      setError(getApiErrorMessage(submitError));
+      setError(
+        getApiErrorMessage(
+          submitError,
+          "Не удалось войти. Проверьте email и пароль.",
+        ),
+      );
     } finally {
       setIsSubmitting(false);
     }
