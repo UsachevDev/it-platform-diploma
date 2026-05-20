@@ -32,6 +32,18 @@ import {
 } from './dto/get-admin-list-query.dto';
 import { GetAdminUsersQueryDto } from './dto/get-admin-users-query.dto';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
+import {
+  AdminStatsEntity,
+  AdminUserDetailEntity,
+  AdminUsersListResponseEntity,
+} from './entities/admin.entity';
+import { MessageResponseEntity } from '../common/swagger/common.entity';
+import { BidsListResponseEntity } from '../bids/entities/bid.entity';
+import {
+  ProjectEntity,
+  ProjectsListResponseEntity,
+} from '../projects/entities/project.entity';
+import { UserEntity } from '../users/entities/user.entity';
 
 @ApiTags('Admin')
 @ApiBearerAuth()
@@ -45,14 +57,20 @@ export class AdminController {
 
   @Get('stats')
   @ApiOperation({ summary: 'Статистика платформы' })
-  @ApiOkResponse({ description: 'Агрегированная статистика' })
+  @ApiOkResponse({
+    description: 'Агрегированная статистика',
+    type: AdminStatsEntity,
+  })
   getStats() {
     return this.adminService.getStats();
   }
 
   @Get('users')
   @ApiOperation({ summary: 'Список пользователей' })
-  @ApiOkResponse({ description: 'Список пользователей' })
+  @ApiOkResponse({
+    description: 'Список пользователей',
+    type: AdminUsersListResponseEntity,
+  })
   findUsers(@Query() query: GetAdminUsersQueryDto) {
     return this.adminService.findUsers(query);
   }
@@ -60,7 +78,10 @@ export class AdminController {
   @Get('users/:id')
   @ApiOperation({ summary: 'Детальная информация о пользователе' })
   @ApiParam({ name: 'id', description: 'UUID пользователя' })
-  @ApiOkResponse({ description: 'Профиль с проектами и откликами' })
+  @ApiOkResponse({
+    description: 'Профиль с проектами и откликами',
+    type: AdminUserDetailEntity,
+  })
   getUserDetail(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.adminService.getUserDetail(id);
   }
@@ -68,7 +89,7 @@ export class AdminController {
   @Post('users/:id/block')
   @ApiOperation({ summary: 'Заблокировать пользователя (причина + срок)' })
   @ApiParam({ name: 'id', description: 'UUID пользователя' })
-  @ApiOkResponse({ description: 'Пользователь заблокирован' })
+  @ApiOkResponse({ description: 'Пользователь заблокирован', type: UserEntity })
   blockUser(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: BlockUserDto,
@@ -80,7 +101,10 @@ export class AdminController {
   @Post('users/:id/unblock')
   @ApiOperation({ summary: 'Разблокировать пользователя' })
   @ApiParam({ name: 'id', description: 'UUID пользователя' })
-  @ApiOkResponse({ description: 'Пользователь разблокирован' })
+  @ApiOkResponse({
+    description: 'Пользователь разблокирован',
+    type: UserEntity,
+  })
   unblockUser(
     @Param('id', new ParseUUIDPipe()) id: string,
     @CurrentUser() currentUser: { sub: string },
@@ -91,7 +115,7 @@ export class AdminController {
   @Patch('users/:id/role')
   @ApiOperation({ summary: 'Изменить роль пользователя' })
   @ApiParam({ name: 'id', description: 'UUID пользователя' })
-  @ApiOkResponse({ description: 'Роль изменена' })
+  @ApiOkResponse({ description: 'Роль изменена', type: UserEntity })
   updateUserRole(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateUserRoleDto,
@@ -103,7 +127,10 @@ export class AdminController {
   @Delete('users/:id')
   @ApiOperation({ summary: 'Удалить пользователя' })
   @ApiParam({ name: 'id', description: 'UUID пользователя' })
-  @ApiOkResponse({ description: 'Пользователь удалён' })
+  @ApiOkResponse({
+    description: 'Пользователь удалён',
+    type: MessageResponseEntity,
+  })
   deleteUser(
     @Param('id', new ParseUUIDPipe()) id: string,
     @CurrentUser() currentUser: { sub: string },
@@ -113,7 +140,10 @@ export class AdminController {
 
   @Get('projects')
   @ApiOperation({ summary: 'Все проекты платформы' })
-  @ApiOkResponse({ description: 'Список проектов' })
+  @ApiOkResponse({
+    description: 'Список проектов',
+    type: ProjectsListResponseEntity,
+  })
   findProjects(@Query() query: GetAdminProjectsQueryDto) {
     return this.adminService.findProjects(query);
   }
@@ -121,7 +151,7 @@ export class AdminController {
   @Post('projects/:id/cancel')
   @ApiOperation({ summary: 'Принудительно отменить проект (модерация)' })
   @ApiParam({ name: 'id', description: 'UUID проекта' })
-  @ApiOkResponse({ description: 'Проект отменён' })
+  @ApiOkResponse({ description: 'Проект отменён', type: ProjectEntity })
   cancelProject(
     @Param('id', new ParseUUIDPipe()) id: string,
     @CurrentUser() currentUser: { sub: string },
@@ -132,7 +162,7 @@ export class AdminController {
   @Delete('projects/:id')
   @ApiOperation({ summary: 'Удалить проект' })
   @ApiParam({ name: 'id', description: 'UUID проекта' })
-  @ApiOkResponse({ description: 'Проект удалён' })
+  @ApiOkResponse({ description: 'Проект удалён', type: MessageResponseEntity })
   deleteProject(
     @Param('id', new ParseUUIDPipe()) id: string,
     @CurrentUser() currentUser: { sub: string },
@@ -142,7 +172,10 @@ export class AdminController {
 
   @Get('bids')
   @ApiOperation({ summary: 'Все отклики платформы' })
-  @ApiOkResponse({ description: 'Список откликов' })
+  @ApiOkResponse({
+    description: 'Список откликов',
+    type: BidsListResponseEntity,
+  })
   findBids(@Query() query: GetAdminBidsQueryDto) {
     return this.adminService.findBids(query);
   }
@@ -150,7 +183,7 @@ export class AdminController {
   @Delete('bids/:id')
   @ApiOperation({ summary: 'Удалить отклик' })
   @ApiParam({ name: 'id', description: 'UUID отклика' })
-  @ApiOkResponse({ description: 'Отклик удалён' })
+  @ApiOkResponse({ description: 'Отклик удалён', type: MessageResponseEntity })
   deleteBid(
     @Param('id', new ParseUUIDPipe()) id: string,
     @CurrentUser() currentUser: { sub: string },

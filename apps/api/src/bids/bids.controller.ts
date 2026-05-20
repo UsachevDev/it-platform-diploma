@@ -28,6 +28,8 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { BidsService } from './bids.service';
 import { CreateBidDto } from './dto/create-bid.dto';
 import { UpdateBidDto } from './dto/update-bid.dto';
+import { AcceptBidResponseEntity, BidEntity } from './entities/bid.entity';
+import { MessageResponseEntity } from '../common/swagger/common.entity';
 
 @ApiTags('Bids')
 @ApiBearerAuth()
@@ -40,7 +42,7 @@ export class BidsController {
   @Roles(UserRole.CONTRACTOR)
   @ApiOperation({ summary: 'Отправить отклик на проект' })
   @ApiParam({ name: 'id', description: 'UUID проекта' })
-  @ApiOkResponse({ description: 'Отклик успешно отправлен' })
+  @ApiOkResponse({ description: 'Отклик успешно отправлен', type: BidEntity })
   @ApiBadRequestResponse({ description: 'Некорректные данные отклика' })
   @ApiUnauthorizedResponse({ description: 'Пользователь не авторизован' })
   @ApiForbiddenResponse({
@@ -63,7 +65,11 @@ export class BidsController {
     summary: 'Получить отклики по проекту (только владелец проекта)',
   })
   @ApiParam({ name: 'id', description: 'UUID проекта' })
-  @ApiOkResponse({ description: 'Список откликов успешно получен' })
+  @ApiOkResponse({
+    description: 'Список откликов успешно получен',
+    type: BidEntity,
+    isArray: true,
+  })
   @ApiUnauthorizedResponse({ description: 'Пользователь не авторизован' })
   @ApiForbiddenResponse({
     description: 'Только владелец проекта может просматривать отклики',
@@ -78,7 +84,11 @@ export class BidsController {
   @Get('bids/my')
   @Roles(UserRole.CONTRACTOR)
   @ApiOperation({ summary: 'Получить мои отклики' })
-  @ApiOkResponse({ description: 'Список моих откликов успешно получен' })
+  @ApiOkResponse({
+    description: 'Список моих откликов успешно получен',
+    type: BidEntity,
+    isArray: true,
+  })
   @ApiUnauthorizedResponse({ description: 'Пользователь не авторизован' })
   @ApiForbiddenResponse({
     description: 'Только исполнитель может просматривать свои отклики',
@@ -94,6 +104,7 @@ export class BidsController {
   @ApiOkResponse({
     description:
       'Отклик принят, исполнитель выбран, проект переведён в IN_WORK',
+    type: AcceptBidResponseEntity,
   })
   @ApiUnauthorizedResponse({ description: 'Пользователь не авторизован' })
   @ApiForbiddenResponse({ description: 'Только заказчик может принять отклик' })
@@ -111,7 +122,7 @@ export class BidsController {
   @Roles(UserRole.CUSTOMER)
   @ApiOperation({ summary: 'Отклонить отклик' })
   @ApiParam({ name: 'id', description: 'UUID отклика' })
-  @ApiOkResponse({ description: 'Отклик успешно отклонён' })
+  @ApiOkResponse({ description: 'Отклик успешно отклонён', type: BidEntity })
   @ApiUnauthorizedResponse({ description: 'Пользователь не авторизован' })
   @ApiForbiddenResponse({
     description: 'Только заказчик может отклонить отклик',
@@ -132,7 +143,7 @@ export class BidsController {
     summary: 'Изменить свой отклик (только PENDING, проект OPEN)',
   })
   @ApiParam({ name: 'id', description: 'UUID отклика' })
-  @ApiOkResponse({ description: 'Отклик успешно обновлён' })
+  @ApiOkResponse({ description: 'Отклик успешно обновлён', type: BidEntity })
   @ApiBadRequestResponse({ description: 'Некорректные данные отклика' })
   @ApiUnauthorizedResponse({ description: 'Пользователь не авторизован' })
   @ApiForbiddenResponse({
@@ -155,7 +166,10 @@ export class BidsController {
     summary: 'Удалить свой отклик (только PENDING, проект OPEN)',
   })
   @ApiParam({ name: 'id', description: 'UUID отклика' })
-  @ApiOkResponse({ description: 'Отклик успешно удалён' })
+  @ApiOkResponse({
+    description: 'Отклик успешно удалён',
+    type: MessageResponseEntity,
+  })
   @ApiUnauthorizedResponse({ description: 'Пользователь не авторизован' })
   @ApiForbiddenResponse({
     description: 'Только автор может удалить отклик',

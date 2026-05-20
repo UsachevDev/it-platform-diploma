@@ -29,6 +29,10 @@ import { JwtPayload } from '../auth/types/jwt-payload.type';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { GetProjectsQueryDto } from './dto/get-projects-query.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import {
+  ProjectEntity,
+  ProjectsListResponseEntity,
+} from './entities/project.entity';
 import { ProjectsService } from './projects.service';
 
 type AuthenticatedRequest = Request & {
@@ -44,7 +48,10 @@ export class ProjectsController {
 
   @Post()
   @ApiOperation({ summary: 'Создать проект' })
-  @ApiCreatedResponse({ description: 'Проект успешно создан' })
+  @ApiCreatedResponse({
+    description: 'Проект успешно создан',
+    type: ProjectEntity,
+  })
   @ApiBadRequestResponse({ description: 'Некорректные данные проекта' })
   @ApiForbiddenResponse({
     description: 'Только заказчик может создавать проекты',
@@ -63,7 +70,10 @@ export class ProjectsController {
 
   @Get()
   @ApiOperation({ summary: 'Получить список проектов' })
-  @ApiOkResponse({ description: 'Список проектов успешно получен' })
+  @ApiOkResponse({
+    description: 'Список проектов успешно получен',
+    type: ProjectsListResponseEntity,
+  })
   @ApiUnauthorizedResponse({ description: 'Пользователь не авторизован' })
   findAll(
     @Query() query: GetProjectsQueryDto,
@@ -78,7 +88,7 @@ export class ProjectsController {
   @Get(':id')
   @ApiOperation({ summary: 'Получить проект по id' })
   @ApiParam({ name: 'id', description: 'UUID проекта' })
-  @ApiOkResponse({ description: 'Проект успешно получен' })
+  @ApiOkResponse({ description: 'Проект успешно получен', type: ProjectEntity })
   @ApiBadRequestResponse({ description: 'Некорректный id проекта' })
   @ApiUnauthorizedResponse({ description: 'Пользователь не авторизован' })
   findOne(@Param('id', new ParseUUIDPipe()) id: string) {
@@ -90,7 +100,7 @@ export class ProjectsController {
     summary: 'Обновить проект (только владелец, только статус OPEN)',
   })
   @ApiParam({ name: 'id', description: 'UUID проекта' })
-  @ApiOkResponse({ description: 'Проект успешно обновлён' })
+  @ApiOkResponse({ description: 'Проект успешно обновлён', type: ProjectEntity })
   @ApiBadRequestResponse({ description: 'Некорректные данные или статус' })
   @ApiForbiddenResponse({
     description: 'Только владелец проекта может обновлять проект',
@@ -109,7 +119,7 @@ export class ProjectsController {
     summary: 'Отменить проект (только владелец, только статус OPEN)',
   })
   @ApiParam({ name: 'id', description: 'UUID проекта' })
-  @ApiOkResponse({ description: 'Проект успешно отменён' })
+  @ApiOkResponse({ description: 'Проект успешно отменён', type: ProjectEntity })
   @ApiBadRequestResponse({ description: 'Некорректный статус проекта' })
   @ApiForbiddenResponse({
     description: 'Только владелец проекта может отменять проект',
@@ -127,7 +137,7 @@ export class ProjectsController {
     summary: 'Завершить проект (только владелец, только статус IN_WORK)',
   })
   @ApiParam({ name: 'id', description: 'UUID проекта' })
-  @ApiOkResponse({ description: 'Проект успешно завершён' })
+  @ApiOkResponse({ description: 'Проект успешно завершён', type: ProjectEntity })
   @ApiBadRequestResponse({ description: 'Некорректный статус проекта' })
   @ApiForbiddenResponse({
     description: 'Только владелец проекта может завершать проект',

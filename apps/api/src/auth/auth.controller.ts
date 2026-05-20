@@ -15,6 +15,8 @@ import { AuthService } from './auth.service';
 import { Roles } from './decorators/roles.decorator';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { AuthResponseEntity } from './entities/auth-response.entity';
+import { UserEntity } from '../users/entities/user.entity';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { JwtPayload } from './types/jwt-payload.type';
@@ -30,7 +32,10 @@ export class AuthController {
 
   @Post('register')
   @ApiOperation({ summary: 'Регистрация пользователя' })
-  @ApiOkResponse({ description: 'Пользователь успешно зарегистрирован' })
+  @ApiOkResponse({
+    description: 'Пользователь успешно зарегистрирован',
+    type: AuthResponseEntity,
+  })
   @ApiBadRequestResponse({ description: 'Некорректные данные' })
   @ApiConflictResponse({
     description: 'Пользователь с таким email уже существует',
@@ -41,7 +46,10 @@ export class AuthController {
 
   @Post('login')
   @ApiOperation({ summary: 'Вход в систему' })
-  @ApiOkResponse({ description: 'Пользователь успешно авторизован' })
+  @ApiOkResponse({
+    description: 'Пользователь успешно авторизован',
+    type: AuthResponseEntity,
+  })
   @ApiBadRequestResponse({ description: 'Некорректные данные' })
   @ApiUnauthorizedResponse({ description: 'Неверный email или пароль' })
   login(@Body() dto: LoginDto) {
@@ -53,7 +61,10 @@ export class AuthController {
   @ApiBearerAuth()
   @Get('me')
   @ApiOperation({ summary: 'Получить профиль текущего пользователя' })
-  @ApiOkResponse({ description: 'Профиль пользователя успешно получен' })
+  @ApiOkResponse({
+    description: 'Профиль пользователя успешно получен',
+    type: UserEntity,
+  })
   @ApiUnauthorizedResponse({ description: 'Пользователь не авторизован' })
   getMe(@Req() req: AuthenticatedRequest) {
     return this.authService.getMe(req.user.sub);
