@@ -42,9 +42,29 @@ model User {
   contractorBids      Bid[]       @relation("ContractorBids")
   selectedForProjects Project[]   @relation("SelectedContractorProjects")
   userSkills          UserSkill[]
+  authoredReviews     Review[]    @relation("AuthoredReviews")
+  receivedReviews     Review[]    @relation("ReceivedReviews")
 
   @@index([role])
   @@index([createdAt])
+}
+
+model Review {
+  id        String   @id @default(uuid()) @db.Uuid
+  projectId String   @db.Uuid
+  authorId  String   @db.Uuid
+  targetId  String   @db.Uuid
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  author  User    @relation("AuthoredReviews", fields: [authorId], references: [id], onDelete: Cascade)
+  target  User    @relation("ReceivedReviews", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, authorId])
+  @@index([targetId])
+  @@index([projectId])
 }
 
 model Skill {
@@ -92,6 +112,7 @@ model Project {
   selectedContractor User?     @relation("SelectedContractorProjects", fields: [selectedContractorId], references: [id], onDelete: SetNull)
   category           Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   bids               Bid[]
+  reviews            Review[]
 
   @@index([customerId])
   @@index([selectedContractorId])
