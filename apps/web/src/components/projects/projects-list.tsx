@@ -11,6 +11,7 @@ import { ErrorState } from "@/components/common/error-state";
 import { PageSkeleton } from "@/components/common/page-skeleton";
 import { SelectMenu } from "@/components/common/select-menu";
 import { ProjectCard } from "@/components/projects/project-card";
+import { getCategoriesRequest } from "@/lib/api/categories";
 import {
   type GetProjectsQuery,
   type ProjectSortBy,
@@ -70,6 +71,24 @@ export function ProjectsList() {
   const searchParam = searchParams.get("search") ?? "";
   const mine = searchParams.get("mine") === "1";
   const responded = searchParams.get("responded") === "1";
+  const categoryId = searchParams.get("category") ?? "";
+
+  const { data: categories } = useQuery({
+    queryKey: ["categories"],
+    queryFn: getCategoriesRequest,
+    staleTime: 5 * 60_000,
+  });
+
+  const categoryOptions = useMemo(
+    () => [
+      { value: "", label: "Все категории" },
+      ...(categories ?? []).map((category) => ({
+        value: category.id,
+        label: category.name,
+      })),
+    ],
+    [categories],
+  );
 
   const [searchInput, setSearchInput] = useState(searchParam);
 
@@ -116,8 +135,9 @@ export function ProjectsList() {
       search: searchParam.trim() || undefined,
       mine: mine || undefined,
       responded: responded || undefined,
+      categoryId: categoryId || undefined,
     }),
-    [page, status, sortBy, searchParam, mine, responded],
+    [page, status, sortBy, searchParam, mine, responded, categoryId],
   );
 
   const { data, isLoading, isError, refetch, isFetching } = useQuery({
@@ -195,7 +215,17 @@ export function ProjectsList() {
           </div>
 
           <SelectMenu
-            className="lg:w-64"
+            className="lg:w-56"
+            ariaLabel="Категория"
+            value={categoryId}
+            options={categoryOptions}
+            onChange={(next) =>
+              updateParams({ category: next || undefined, page: undefined })
+            }
+          />
+
+          <SelectMenu
+            className="lg:w-56"
             ariaLabel="Сортировка"
             value={sortBy}
             options={SORT_OPTIONS}

@@ -22,6 +22,12 @@ export function ProjectCard({ project }: ProjectCardProps) {
         <StatusBadge status={project.status} />
       </div>
 
+      {project.category ? (
+        <span className="mt-3 inline-flex w-fit items-center rounded-full bg-black/5 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+          {project.category.name}
+        </span>
+      ) : null}
+
       <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
         {project.description}
       </p>

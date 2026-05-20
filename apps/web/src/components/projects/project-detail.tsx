@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   Mail,
   MessageSquare,
+  Tag,
   UserRound,
   Wallet,
   XCircle,
@@ -207,6 +208,11 @@ export function ProjectDetail({ projectId }: ProjectDetailProps) {
             icon={<MessageSquare className="h-4 w-4 text-zinc-400" />}
             label="Откликов"
             value={String(project._count.bids)}
+          />
+          <InfoRow
+            icon={<Tag className="h-4 w-4 text-zinc-400" />}
+            label="Категория"
+            value={project.category?.name ?? "Не указана"}
           />
           <InfoRow
             icon={<UserRound className="h-4 w-4 text-zinc-400" />}

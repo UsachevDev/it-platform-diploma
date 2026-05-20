@@ -30,6 +30,17 @@ export class ProjectsService {
       throw new BadRequestException('budgetMax не может быть меньше budgetMin');
     }
 
+    if (dto.categoryId) {
+      const category = await this.prisma.category.findUnique({
+        where: { id: dto.categoryId },
+        select: { id: true },
+      });
+
+      if (!category) {
+        throw new BadRequestException('Категория не найдена');
+      }
+    }
+
     const project = await this.prisma.project.create({
       data: {
         customerId,
@@ -37,6 +48,7 @@ export class ProjectsService {
         description: dto.description,
         budgetMin: dto.budgetMin,
         budgetMax: dto.budgetMax,
+        categoryId: dto.categoryId ?? null,
         status: ProjectStatus.OPEN,
       },
       select: projectSelect,
@@ -85,6 +97,10 @@ export class ProjectsService {
       where.bids = {
         some: { contractorId: currentUser.sub },
       };
+    }
+
+    if (query.categoryId) {
+      where.categoryId = query.categoryId;
     }
 
     if (query.search) {
@@ -170,6 +186,7 @@ export class ProjectsService {
         ...(dto.description !== undefined && { description: dto.description }),
         ...(dto.budgetMin !== undefined && { budgetMin: dto.budgetMin }),
         ...(dto.budgetMax !== undefined && { budgetMax: dto.budgetMax }),
+        ...(dto.categoryId !== undefined && { categoryId: dto.categoryId }),
       },
       select: projectSelect,
     });
