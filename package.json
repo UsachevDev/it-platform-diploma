@@ -9,6 +9,7 @@
     "build:api": "npm --prefix apps/api run build",
     "lint:api": "npm --prefix apps/api run lint",
     "format:api": "npm --prefix apps/api run format",
+    "seed:demo": "npm --prefix apps/api run seed:demo",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "db:reset": "docker compose down -v && docker compose up -d"
