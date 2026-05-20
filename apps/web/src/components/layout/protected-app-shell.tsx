@@ -8,49 +8,53 @@ import {
   BriefcaseBusiness,
   UserRound,
   LogOut,
+  BarChart3,
+  Users,
+  ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { getRoleLabel } from "@/lib/auth/role-labels";
+import type { UserRole } from "@/lib/auth/auth-types";
 
 type NavItem = {
   href: string;
   label: string;
   icon: typeof LayoutDashboard;
-  contractorOnly?: boolean;
 };
 
-const navItems: NavItem[] = [
-  {
-    href: "/dashboard",
-    label: "Главная",
-    icon: LayoutDashboard,
-  },
-  {
-    href: "/projects",
-    label: "Проекты",
-    icon: FolderKanban,
-  },
-  {
-    href: "/bids",
-    label: "Отклики",
-    icon: BriefcaseBusiness,
-    contractorOnly: true,
-  },
-  {
-    href: "/profile",
-    label: "Профиль",
-    icon: UserRound,
-  },
+const MEMBER_NAV: NavItem[] = [
+  { href: "/dashboard", label: "Главная", icon: LayoutDashboard },
+  { href: "/projects", label: "Проекты", icon: FolderKanban },
+  { href: "/bids", label: "Отклики", icon: BriefcaseBusiness },
+  { href: "/profile", label: "Профиль", icon: UserRound },
 ];
+
+const CONTRACTOR_NAV = MEMBER_NAV;
+const CUSTOMER_NAV: NavItem[] = MEMBER_NAV.filter(
+  (item) => item.href !== "/bids",
+);
+
+const ADMIN_NAV: NavItem[] = [
+  { href: "/admin/stats", label: "Статистика", icon: BarChart3 },
+  { href: "/admin/users", label: "Пользователи", icon: Users },
+  { href: "/admin/projects", label: "Проекты", icon: FolderKanban },
+  { href: "/admin/bids", label: "Отклики", icon: BriefcaseBusiness },
+];
+
+function navForRole(role?: UserRole | null): NavItem[] {
+  if (role === "ADMIN") return ADMIN_NAV;
+  if (role === "CONTRACTOR") return CONTRACTOR_NAV;
+  return CUSTOMER_NAV;
+}
 
 export function ProtectedAppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
 
-  const visibleNavItems = navItems.filter(
-    (item) => !item.contractorOnly || user?.role === "CONTRACTOR",
-  );
+  const isAdmin = user?.role === "ADMIN";
+  const navItems = navForRole(user?.role);
+  const homeHref = isAdmin ? "/admin/stats" : "/dashboard";
 
   function isActive(href: string) {
     return pathname === href || pathname.startsWith(`${href}/`);
@@ -66,7 +70,7 @@ export function ProtectedAppShell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-30 border-b border-black/5 bg-white/80 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 lg:px-8">
           <Link
-            href="/dashboard"
+            href={homeHref}
             className="flex items-center gap-2"
             aria-label="IT Platform"
           >
@@ -76,10 +80,16 @@ export function ProtectedAppShell({ children }: { children: React.ReactNode }) {
             <span className="text-sm font-semibold tracking-tight">
               IT Platform
             </span>
+            {isAdmin ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-black/5 px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                <ShieldCheck className="h-3 w-3" />
+                Admin
+              </span>
+            ) : null}
           </Link>
 
           <nav className="hidden items-center gap-1 md:flex">
-            {visibleNavItems.map((item) => {
+            {navItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.href);
 
@@ -130,7 +140,7 @@ export function ProtectedAppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-4 pb-4 md:hidden lg:px-8">
-          {visibleNavItems.map((item) => {
+          {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.href);
 

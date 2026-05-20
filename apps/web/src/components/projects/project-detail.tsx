@@ -17,6 +17,7 @@ import {
 
 import { BidsList } from "@/components/bids/bids-list";
 import { ContractorBidSection } from "@/components/bids/contractor-bid-section";
+import { UserNameLink } from "@/components/admin/user-name-link";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
 import { EmptyState } from "@/components/common/empty-state";
 import { ErrorState } from "@/components/common/error-state";
@@ -210,7 +211,15 @@ export function ProjectDetail({ projectId }: ProjectDetailProps) {
           <InfoRow
             icon={<UserRound className="h-4 w-4 text-zinc-400" />}
             label="Заказчик"
-            value={`${project.customer.name} · ${getRoleLabel(project.customer.role)}`}
+            value={
+              <span>
+                <UserNameLink
+                  userId={project.customer.id}
+                  name={project.customer.name}
+                />{" "}
+                · {getRoleLabel(project.customer.role)}
+              </span>
+            }
           />
           <InfoRow
             icon={<Mail className="h-4 w-4 text-zinc-400" />}
@@ -222,7 +231,12 @@ export function ProjectDetail({ projectId }: ProjectDetailProps) {
             <InfoRow
               icon={<UserRound className="h-4 w-4 text-zinc-400" />}
               label="Исполнитель"
-              value={project.selectedContractor.name}
+              value={
+                <UserNameLink
+                  userId={project.selectedContractor.id}
+                  name={project.selectedContractor.name}
+                />
+              }
             />
           )}
 
@@ -263,7 +277,7 @@ function InfoRow({
 }: {
   icon: React.ReactNode;
   label: string;
-  value: string;
+  value: React.ReactNode;
 }) {
   return (
     <div className="flex items-start gap-3">

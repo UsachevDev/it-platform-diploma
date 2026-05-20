@@ -11,6 +11,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { UsersRepository } from './repositories/users.repository';
 import { JwtPayload } from './types/jwt-payload.type';
+import { buildBlockMessage } from './utils/block-message.util';
 
 @Injectable()
 export class AuthService {
@@ -63,6 +64,17 @@ export class AuthService {
     if (!isPasswordValid) {
       this.logger.warn(`Login failed: invalid password, email=${email}`);
       throw new UnauthorizedException('Неверный email или пароль');
+    }
+
+    if (user.isBlocked) {
+      if (user.blockedUntil && user.blockedUntil.getTime() <= Date.now()) {
+        await this.usersRepository.unblock(user.id);
+      } else {
+        this.logger.warn(`Login failed: account blocked, email=${email}`);
+        throw new UnauthorizedException(
+          buildBlockMessage(user.blockReason, user.blockedUntil),
+        );
+      }
     }
 
     this.logger.log(`User logged in: userId=${user.id}, email=${user.email}`);

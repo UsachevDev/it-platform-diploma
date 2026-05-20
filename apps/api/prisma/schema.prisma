@@ -33,6 +33,9 @@ model User {
   name                String    @db.VarChar(100)
   about               String?
   skills              String[]  @default([])
+  isBlocked           Boolean   @default(false)
+  blockReason         String?
+  blockedUntil        DateTime?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 

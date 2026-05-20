@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import {
   ArrowRight,
   BriefcaseBusiness,
@@ -14,7 +16,14 @@ import { getRoleLabel } from "@/lib/auth/role-labels";
 import { useAuth } from "@/providers/auth-provider";
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { user } = useAuth();
+
+  useEffect(() => {
+    if (user?.role === "ADMIN") {
+      router.replace("/admin/stats");
+    }
+  }, [user, router]);
 
   const isCustomer = user?.role === "CUSTOMER";
 

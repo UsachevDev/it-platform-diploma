@@ -7,6 +7,9 @@ export const safeUserSelect = {
   name: true,
   about: true,
   skills: true,
+  isBlocked: true,
+  blockReason: true,
+  blockedUntil: true,
   createdAt: true,
   updatedAt: true,
 } as const satisfies Prisma.UserSelect;

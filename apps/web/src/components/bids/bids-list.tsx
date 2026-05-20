@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Clock, Mail, UserRound, X } from "lucide-react";
 
+import { UserNameLink } from "@/components/admin/user-name-link";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
 import { EmptyState } from "@/components/common/empty-state";
 import { ErrorState } from "@/components/common/error-state";
@@ -137,9 +138,11 @@ function BidCard({
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <UserRound className="h-4 w-4 text-zinc-400" />
-            <span className="font-medium">
-              {bid.contractor?.name ?? "Исполнитель"}
-            </span>
+            <UserNameLink
+              userId={bid.contractor?.id}
+              name={bid.contractor?.name ?? "Исполнитель"}
+              className="font-medium"
+            />
             <StatusBadge status={bid.status} />
           </div>
 
