@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, ArrowRight } from "lucide-react";
+import { PasswordStrength } from "@/components/common/password-strength";
 import { getApiErrorMessage } from "@/lib/api/errors";
 import type { UserRole } from "@/lib/auth/auth-types";
 import { useAuth } from "@/providers/auth-provider";
@@ -135,6 +136,8 @@ export function RegisterForm() {
             )}
           </button>
         </div>
+
+        <PasswordStrength password={password} />
       </div>
 
       <div className="space-y-3">

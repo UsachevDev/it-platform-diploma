@@ -101,7 +101,11 @@ export function ProtectedAppShell({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="flex items-center gap-2">
-            <div className="hidden h-9 items-center gap-2 rounded-full border border-black/10 bg-white pl-1 pr-3 sm:flex">
+            <Link
+              href="/profile"
+              aria-label="Открыть профиль"
+              className="hidden h-9 items-center gap-2 rounded-full border border-black/10 bg-white pl-1 pr-3 transition hover:border-black/25 hover:bg-black/[0.03] sm:flex"
+            >
               <div className="flex h-7 w-7 items-center justify-center rounded-full bg-black text-[11px] font-semibold uppercase text-white">
                 {(user?.name ?? "?").charAt(0)}
               </div>
@@ -113,7 +117,7 @@ export function ProtectedAppShell({ children }: { children: React.ReactNode }) {
                   {getRoleLabel(user?.role)}
                 </div>
               </div>
-            </div>
+            </Link>
 
             <button
               onClick={handleLogout}
