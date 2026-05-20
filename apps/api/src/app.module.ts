@@ -9,6 +9,7 @@ import { ProjectsModule } from './projects/projects.module';
 import { BidsModule } from './bids/bids.module';
 import { AdminModule } from './admin/admin.module';
 import { CategoriesModule } from './categories/categories.module';
+import { SkillsModule } from './skills/skills.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { CategoriesModule } from './categories/categories.module';
     BidsModule,
     AdminModule,
     CategoriesModule,
+    SkillsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

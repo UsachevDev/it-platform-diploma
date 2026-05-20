@@ -10,7 +10,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { UpdateEmailDto } from './dto/update-email.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { safeUserSelect } from './types/safe-user.type';
+import { safeUserSelect, toSafeUser } from './types/safe-user.type';
 
 @Injectable()
 export class UsersService {
@@ -28,20 +28,67 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    return user;
+    return toSafeUser(user);
   }
 
   async updateMe(userId: string, dto: UpdateUserDto) {
     await this.ensureExists(userId);
 
-    return this.prisma.user.update({
+    if (dto.skills !== undefined) {
+      await this.setUserSkills(userId, dto.skills);
+    }
+
+    const user = await this.prisma.user.update({
       where: { id: userId },
       data: {
         ...(dto.name !== undefined ? { name: dto.name } : {}),
         ...(dto.about !== undefined ? { about: dto.about } : {}),
-        ...(dto.skills !== undefined ? { skills: dto.skills } : {}),
       },
       select: safeUserSelect,
+    });
+
+    return toSafeUser(user);
+  }
+
+  /**
+   * Заменяет набор навыков пользователя: создаёт недостающие
+   * записи Skill и пересобирает связи UserSkill.
+   */
+  private async setUserSkills(userId: string, skillNames: string[]) {
+    const names = Array.from(
+      new Set(
+        skillNames
+          .map((name) => name.trim())
+          .filter((name) => name.length > 0),
+      ),
+    );
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.userSkill.deleteMany({ where: { userId } });
+
+      if (names.length === 0) {
+        return;
+      }
+
+      await Promise.all(
+        names.map((name) =>
+          tx.skill.upsert({
+            where: { name },
+            create: { name },
+            update: {},
+          }),
+        ),
+      );
+
+      const skills = await tx.skill.findMany({
+        where: { name: { in: names } },
+        select: { id: true },
+      });
+
+      await tx.userSkill.createMany({
+        data: skills.map((skill) => ({ userId, skillId: skill.id })),
+        skipDuplicates: true,
+      });
     });
   }
 
@@ -61,7 +108,9 @@ export class UsersService {
     );
 
     if (!passwordOk) {
-      this.logger.warn(`Update email failed: invalid password, userId=${userId}`);
+      this.logger.warn(
+        `Update email failed: invalid password, userId=${userId}`,
+      );
       throw new UnauthorizedException('Неверный текущий пароль');
     }
 
@@ -84,11 +133,9 @@ export class UsersService {
       select: safeUserSelect,
     });
 
-    this.logger.log(
-      `Email updated: userId=${userId}, newEmail=${dto.newEmail}`,
-    );
+    this.logger.log(`Email updated: userId=${userId}, newEmail=${dto.newEmail}`);
 
-    return updated;
+    return toSafeUser(updated);
   }
 
   async updatePassword(userId: string, dto: UpdatePasswordDto) {
@@ -114,9 +161,7 @@ export class UsersService {
     }
 
     if (dto.currentPassword === dto.newPassword) {
-      throw new ConflictException(
-        'Новый пароль должен отличаться от текущего',
-      );
+      throw new ConflictException('Новый пароль должен отличаться от текущего');
     }
 
     const newHash = await bcrypt.hash(dto.newPassword, 10);
@@ -141,7 +186,7 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    return user;
+    return toSafeUser(user);
   }
 
   private async ensureExists(userId: string) {

@@ -32,19 +32,38 @@ model User {
   role                UserRole
   name                String    @db.VarChar(100)
   about               String?
-  skills              String[]  @default([])
   isBlocked           Boolean   @default(false)
   blockReason         String?
   blockedUntil        DateTime?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
-  customerProjects    Project[] @relation("CustomerProjects")
-  contractorBids      Bid[]     @relation("ContractorBids")
-  selectedForProjects Project[] @relation("SelectedContractorProjects")
+  customerProjects    Project[]   @relation("CustomerProjects")
+  contractorBids      Bid[]       @relation("ContractorBids")
+  selectedForProjects Project[]   @relation("SelectedContractorProjects")
+  userSkills          UserSkill[]
 
   @@index([role])
   @@index([createdAt])
+}
+
+model Skill {
+  id        String      @id @default(uuid()) @db.Uuid
+  name      String      @unique @db.VarChar(50)
+  createdAt DateTime    @default(now())
+
+  userSkills UserSkill[]
+}
+
+model UserSkill {
+  userId  String @db.Uuid
+  skillId String @db.Uuid
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([userId, skillId])
+  @@index([skillId])
 }
 
 model Category {

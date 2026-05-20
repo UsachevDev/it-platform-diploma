@@ -7,9 +7,10 @@ import {
   useState,
   type KeyboardEvent,
 } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { X } from "lucide-react";
 
-import { SKILL_SUGGESTIONS } from "@/lib/skills-suggestions";
+import { getSkillsRequest } from "@/lib/api/skills";
 
 const MAX_SKILLS = 30;
 const MAX_SKILL_LENGTH = 50;
@@ -28,23 +29,33 @@ export function SkillsInput({ value, onChange, id }: SkillsInputProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const { data: allSkills } = useQuery({
+    queryKey: ["skills"],
+    queryFn: getSkillsRequest,
+    staleTime: 5 * 60_000,
+  });
+
   const lowerSelected = useMemo(
     () => new Set(value.map((s) => s.toLowerCase())),
     [value],
   );
 
   const suggestions = useMemo(() => {
+    const source = allSkills ?? [];
     const query = draft.trim().toLowerCase();
     if (!query) {
-      return SKILL_SUGGESTIONS.filter(
-        (s) => !lowerSelected.has(s.toLowerCase()),
-      ).slice(0, MAX_VISIBLE_SUGGESTIONS);
+      return source
+        .filter((s) => !lowerSelected.has(s.toLowerCase()))
+        .slice(0, MAX_VISIBLE_SUGGESTIONS);
     }
-    return SKILL_SUGGESTIONS.filter(
-      (s) =>
-        s.toLowerCase().includes(query) && !lowerSelected.has(s.toLowerCase()),
-    ).slice(0, MAX_VISIBLE_SUGGESTIONS);
-  }, [draft, lowerSelected]);
+    return source
+      .filter(
+        (s) =>
+          s.toLowerCase().includes(query) &&
+          !lowerSelected.has(s.toLowerCase()),
+      )
+      .slice(0, MAX_VISIBLE_SUGGESTIONS);
+  }, [draft, lowerSelected, allSkills]);
 
   useEffect(() => {
     setActiveIndex(0);
