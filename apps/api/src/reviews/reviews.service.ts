@@ -5,8 +5,9 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { ProjectStatus } from '@prisma/client';
+import { NotificationType, ProjectStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 
 const reviewUserRef = {
@@ -22,7 +23,10 @@ const reviewInclude = {
 export class ReviewsService {
   private readonly logger = new Logger(ReviewsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
   async create(projectId: string, dto: CreateReviewDto, authorId: string) {
     const project = await this.prisma.project.findUnique({
@@ -85,6 +89,14 @@ export class ReviewsService {
     this.logger.log(
       `Review created: projectId=${projectId}, authorId=${authorId}, targetId=${targetId}`,
     );
+
+    await this.notifications.create({
+      userId: targetId,
+      type: NotificationType.REVIEW_RECEIVED,
+      title: 'Новый отзыв',
+      message: `${review.author.name} оставил отзыв с оценкой ${dto.rating}/5.`,
+      link: `/projects/${projectId}`,
+    });
 
     return review;
   }

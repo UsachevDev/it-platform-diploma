@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { BidStatus, ProjectStatus, UserRole } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { BidsService } from './bids.service';
 
 describe('BidsService', () => {
@@ -25,9 +26,16 @@ describe('BidsService', () => {
     $transaction: jest.fn(),
   };
 
+  const notificationsMock = {
+    create: jest.fn().mockResolvedValue(undefined),
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
-    service = new BidsService(prismaMock as unknown as PrismaService);
+    service = new BidsService(
+      prismaMock as unknown as PrismaService,
+      notificationsMock as unknown as NotificationsService,
+    );
   });
 
   describe('create', () => {

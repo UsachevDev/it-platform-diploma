@@ -25,6 +25,14 @@ enum BidStatus {
   REJECTED
 }
 
+enum NotificationType {
+  BID_RECEIVED
+  BID_ACCEPTED
+  BID_REJECTED
+  PROJECT_COMPLETED
+  REVIEW_RECEIVED
+}
+
 model User {
   id                  String    @id @default(uuid()) @db.Uuid
   email               String    @unique
@@ -44,9 +52,26 @@ model User {
   userSkills          UserSkill[]
   authoredReviews     Review[]    @relation("AuthoredReviews")
   receivedReviews     Review[]    @relation("ReceivedReviews")
+  notifications       Notification[]
 
   @@index([role])
   @@index([createdAt])
+}
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @db.Uuid
+  type      NotificationType
+  title     String           @db.VarChar(160)
+  message   String
+  link      String?
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
 }
 
 model Review {

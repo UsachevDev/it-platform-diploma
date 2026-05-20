@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { ProjectStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { ProjectsService } from './projects.service';
 import { ProjectSortBy } from './dto/get-projects-query.dto';
 
@@ -37,9 +38,16 @@ describe('ProjectsService', () => {
       ...overrides,
     }) as any;
 
+  const notificationsMock = {
+    create: jest.fn().mockResolvedValue(undefined),
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
-    service = new ProjectsService(prismaMock as unknown as PrismaService);
+    service = new ProjectsService(
+      prismaMock as unknown as PrismaService,
+      notificationsMock as unknown as NotificationsService,
+    );
   });
 
   it('should create project successfully', async () => {
