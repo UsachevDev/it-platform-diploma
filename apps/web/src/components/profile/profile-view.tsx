@@ -5,8 +5,10 @@ import { useQuery } from "@tanstack/react-query";
 import { CalendarDays, Mail, Pencil, UserRound } from "lucide-react";
 
 import { ErrorState } from "@/components/common/error-state";
+import { ProfileCompleteness } from "@/components/profile/profile-completeness";
 import { ProfileEditForm } from "@/components/profile/profile-edit-form";
 import { ProfileStats } from "@/components/profile/profile-stats";
+import { SecuritySection } from "@/components/profile/security-section";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getMeRequest } from "@/lib/api/users";
 import { getRoleLabel } from "@/lib/auth/role-labels";
@@ -129,12 +131,21 @@ export function ProfileView() {
       </div>
 
       {!isEditing ? (
-        <section className="space-y-3">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
-            Статистика
-          </h2>
-          <ProfileStats role={user.role} />
-        </section>
+        <>
+          <ProfileCompleteness
+            user={user}
+            onEdit={() => setIsEditing(true)}
+          />
+
+          <section className="space-y-3">
+            <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+              Статистика
+            </h2>
+            <ProfileStats role={user.role} />
+          </section>
+
+          <SecuritySection currentEmail={user.email} />
+        </>
       ) : null}
     </div>
   );
