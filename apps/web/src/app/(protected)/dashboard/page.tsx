@@ -11,7 +11,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { LatestProjects } from "@/components/dashboard/latest-projects";
-import { PlatformStats } from "@/components/dashboard/platform-stats";
+import { MyMetrics } from "@/components/dashboard/my-metrics";
 import { getRoleLabel } from "@/lib/auth/role-labels";
 import { useAuth } from "@/providers/auth-provider";
 
@@ -87,13 +87,21 @@ export default function DashboardPage() {
             Роль:{" "}
             <span className="font-medium">{getRoleLabel(user?.role)}</span>
           </div>
-          <div className="rounded-full border bg-zinc-50 px-4 py-1.5">
-            Email: <span className="font-medium">{user?.email}</span>
+          <div className="flex max-w-full items-center gap-1 rounded-full border bg-zinc-50 px-4 py-1.5">
+            <span className="shrink-0">Email:</span>
+            <span className="truncate font-medium">{user?.email}</span>
           </div>
         </div>
       </section>
 
-      <PlatformStats />
+      {user ? (
+        <section className="space-y-4">
+          <h2 className="text-xl font-semibold tracking-tight">
+            {isCustomer ? "Мои проекты" : "Мои отклики"}
+          </h2>
+          <MyMetrics role={user.role} />
+        </section>
+      ) : null}
 
       <section className="space-y-4">
         <h2 className="text-xl font-semibold tracking-tight">
