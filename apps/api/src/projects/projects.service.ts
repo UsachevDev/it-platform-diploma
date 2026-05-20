@@ -5,9 +5,15 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, ProjectStatus, UserRole } from '@prisma/client';
+import {
+  NotificationType,
+  Prisma,
+  ProjectStatus,
+  UserRole,
+} from '@prisma/client';
 import { buildPaginationMeta } from '../common/utils/pagination.util';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import {
   GetProjectsQueryDto,
@@ -20,7 +26,10 @@ import { projectSelect } from './projects.select';
 export class ProjectsService {
   private readonly logger = new Logger(ProjectsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
   async create(customerId: string, dto: CreateProjectDto) {
     if (dto.budgetMax < dto.budgetMin) {
@@ -230,6 +239,16 @@ export class ProjectsService {
     });
 
     this.logger.log(`Project marked done: projectId=${id}, userId=${userId}`);
+
+    if (doneProject.selectedContractorId) {
+      await this.notifications.create({
+        userId: doneProject.selectedContractorId,
+        type: NotificationType.PROJECT_COMPLETED,
+        title: 'Проект завершён',
+        message: `Заказчик завершил проект «${doneProject.title}». Не забудьте оставить отзыв.`,
+        link: `/projects/${id}`,
+      });
+    }
 
     return doneProject;
   }

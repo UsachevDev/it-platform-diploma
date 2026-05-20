@@ -5,8 +5,14 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { BidStatus, ProjectStatus, UserRole } from '@prisma/client';
+import {
+  BidStatus,
+  NotificationType,
+  ProjectStatus,
+  UserRole,
+} from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateBidDto } from './dto/create-bid.dto';
 import { UpdateBidDto } from './dto/update-bid.dto';
 
@@ -19,7 +25,10 @@ type CurrentUser = {
 export class BidsService {
   private readonly logger = new Logger(BidsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
   private getUserId(currentUser: CurrentUser) {
     if (!currentUser?.sub) {
@@ -106,6 +115,14 @@ export class BidsService {
     this.logger.log(
       `Bid created: bidId=${bid.id}, projectId=${projectId}, userId=${userId}`,
     );
+
+    await this.notifications.create({
+      userId: project.customerId,
+      type: NotificationType.BID_RECEIVED,
+      title: 'Новый отклик на проект',
+      message: `На проект «${project.title}» поступил новый отклик.`,
+      link: `/projects/${projectId}`,
+    });
 
     return bid;
   }
@@ -284,6 +301,37 @@ export class BidsService {
       `Bid accepted: bidId=${bidId}, projectId=${bid.projectId}, customerId=${userId}, contractorId=${bid.contractorId}`,
     );
 
+    const projectLink = `/projects/${bid.projectId}`;
+
+    await this.notifications.create({
+      userId: bid.contractorId,
+      type: NotificationType.BID_ACCEPTED,
+      title: 'Ваш отклик принят',
+      message: `Заказчик выбрал вас исполнителем проекта «${bid.project.title}».`,
+      link: projectLink,
+    });
+
+    const rejectedContractors = await this.prisma.bid.findMany({
+      where: {
+        projectId: bid.projectId,
+        id: { not: bid.id },
+        status: BidStatus.REJECTED,
+      },
+      select: { contractorId: true },
+    });
+
+    await Promise.all(
+      rejectedContractors.map((rejected) =>
+        this.notifications.create({
+          userId: rejected.contractorId,
+          type: NotificationType.BID_REJECTED,
+          title: 'Отклик отклонён',
+          message: `По проекту «${bid.project.title}» выбран другой исполнитель.`,
+          link: projectLink,
+        }),
+      ),
+    );
+
     return {
       message: 'Исполнитель выбран, проект переведён в IN_WORK',
       bid: acceptedBid,
@@ -357,6 +405,14 @@ export class BidsService {
     this.logger.log(
       `Bid rejected: bidId=${bidId}, projectId=${bid.projectId}, customerId=${userId}`,
     );
+
+    await this.notifications.create({
+      userId: bid.contractorId,
+      type: NotificationType.BID_REJECTED,
+      title: 'Отклик отклонён',
+      message: `Ваш отклик на проект «${bid.project.title}» отклонён.`,
+      link: `/projects/${bid.projectId}`,
+    });
 
     return rejectedBid;
   }

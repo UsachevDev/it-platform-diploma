@@ -12,6 +12,7 @@ import {
   Users,
   ShieldCheck,
 } from "lucide-react";
+import { NotificationsBell } from "@/components/notifications/notifications-bell";
 import { useAuth } from "@/providers/auth-provider";
 import { getRoleLabel } from "@/lib/auth/role-labels";
 import type { UserRole } from "@/lib/auth/auth-types";
@@ -111,6 +112,8 @@ export function ProtectedAppShell({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="flex items-center gap-2">
+            <NotificationsBell />
+
             <Link
               href="/profile"
               aria-label="Открыть профиль"
