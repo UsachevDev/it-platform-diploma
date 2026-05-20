@@ -18,6 +18,7 @@ import {
 
 import { BidsList } from "@/components/bids/bids-list";
 import { ContractorBidSection } from "@/components/bids/contractor-bid-section";
+import { ProjectReviews } from "@/components/reviews/project-reviews";
 import { UserNameLink } from "@/components/admin/user-name-link";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
 import { EmptyState } from "@/components/common/empty-state";
@@ -264,6 +265,8 @@ export function ProjectDetail({ projectId }: ProjectDetailProps) {
       {isOwner && (
         <BidsList projectId={project.id} projectStatus={project.status} />
       )}
+
+      <ProjectReviews project={project} />
 
       <button
         type="button"

@@ -21,6 +21,7 @@ import { ConfirmDialog } from "@/components/common/confirm-dialog";
 import { ErrorState } from "@/components/common/error-state";
 import { SelectMenu } from "@/components/common/select-menu";
 import { StatusBadge } from "@/components/common/status-badge";
+import { UserReviews } from "@/components/reviews/user-reviews";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   type AdminUserDetail,
@@ -308,6 +309,8 @@ function AdminUserDetailContent({ userId }: { userId: string }) {
       </div>
 
       <UserProjectsBids data={data} />
+
+      <UserReviews userId={data.id} />
 
       <BlockUserDialog
         open={blockDialogOpen}
