@@ -9,7 +9,7 @@ import { BidStatus, Prisma, ProjectStatus, UserRole } from '@prisma/client';
 import { buildPaginationMeta } from '../common/utils/pagination.util';
 import { PrismaService } from '../prisma/prisma.service';
 import { projectSelect } from '../projects/projects.select';
-import { safeUserSelect } from '../users/types/safe-user.type';
+import { safeUserSelect, toSafeUser } from '../users/types/safe-user.type';
 import { BlockUserDto } from './dto/block-user.dto';
 import { GetAdminUsersQueryDto } from './dto/get-admin-users-query.dto';
 import {
@@ -65,7 +65,7 @@ export class AdminService {
     ]);
 
     return {
-      data: users,
+      data: users.map(toSafeUser),
       meta: buildPaginationMeta(page, limit, total),
     };
   }
@@ -100,7 +100,7 @@ export class AdminService {
       throw new NotFoundException('Пользователь не найден');
     }
 
-    return user;
+    return toSafeUser(user);
   }
 
   async blockUser(userId: string, adminId: string, dto: BlockUserDto) {
@@ -143,7 +143,7 @@ export class AdminService {
       `User blocked: userId=${userId}, adminId=${adminId}, until=${blockedUntil?.toISOString() ?? 'permanent'}`,
     );
 
-    return updated;
+    return toSafeUser(updated);
   }
 
   async unblockUser(userId: string, adminId: string) {
@@ -168,7 +168,7 @@ export class AdminService {
 
     this.logger.log(`User unblocked: userId=${userId}, adminId=${adminId}`);
 
-    return updated;
+    return toSafeUser(updated);
   }
 
   async updateUserRole(userId: string, adminId: string, role: UserRole) {
@@ -199,7 +199,7 @@ export class AdminService {
       `User role changed: userId=${userId}, role=${role}, adminId=${adminId}`,
     );
 
-    return updated;
+    return toSafeUser(updated);
   }
 
   async deleteUser(userId: string, adminId: string) {

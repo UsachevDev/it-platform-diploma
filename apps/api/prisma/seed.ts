@@ -13,9 +13,25 @@ const adapter = new PrismaPg({
 
 const prisma = new PrismaClient({ adapter });
 
+function skillsConnect(names: string[]) {
+  return {
+    userSkills: {
+      create: names.map((name) => ({
+        skill: {
+          connectOrCreate: {
+            where: { name },
+            create: { name },
+          },
+        },
+      })),
+    },
+  };
+}
+
 async function main() {
   await prisma.bid.deleteMany();
   await prisma.project.deleteMany();
+  await prisma.userSkill.deleteMany();
   await prisma.user.deleteMany();
 
   const passwordHash = hashSync('Password123!', 10);
@@ -27,7 +43,6 @@ async function main() {
       role: UserRole.ADMIN,
       name: 'Demo Admin',
       about: 'Администратор платформы',
-      skills: [],
     },
   });
 
@@ -38,7 +53,6 @@ async function main() {
       role: UserRole.CUSTOMER,
       name: 'Demo Customer',
       about: 'Заказчик IT-проектов',
-      skills: [],
     },
   });
 
@@ -49,7 +63,7 @@ async function main() {
       role: UserRole.CONTRACTOR,
       name: 'Demo Contractor 1',
       about: 'Frontend developer',
-      skills: ['Next.js', 'TypeScript', 'TailwindCSS'],
+      ...skillsConnect(['Next.js', 'TypeScript', 'React']),
     },
   });
 
@@ -60,7 +74,7 @@ async function main() {
       role: UserRole.CONTRACTOR,
       name: 'Demo Contractor 2',
       about: 'Backend developer',
-      skills: ['NestJS', 'Prisma', 'PostgreSQL'],
+      ...skillsConnect(['NestJS', 'Prisma', 'PostgreSQL']),
     },
   });
 
