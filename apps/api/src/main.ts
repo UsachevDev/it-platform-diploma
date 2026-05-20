@@ -25,14 +25,51 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('IT Platform API')
     .setDescription(
-      'API платформы для взаимодействия заказчиков и исполнителей IT-проектов',
+      [
+        'REST API платформы для взаимодействия заказчиков и исполнителей IT-проектов.',
+        '',
+        '## Роли',
+        '- **CUSTOMER** — заказчик: создаёт проекты, выбирает исполнителей.',
+        '- **CONTRACTOR** — исполнитель: отправляет отклики на проекты.',
+        '- **ADMIN** — администратор: модерация пользователей, проектов и откликов.',
+        '',
+        '## Авторизация',
+        'Большинство эндпоинтов требуют JWT. Получите токен через `POST /auth/login` ' +
+          'или `POST /auth/register`, затем нажмите **Authorize** и вставьте токен.',
+        '',
+        '## Жизненный цикл проекта',
+        '`OPEN` → (принят отклик) → `IN_WORK` → (завершён) → `DONE`. ' +
+          'Из `OPEN` проект также может быть переведён в `CANCELED`.',
+      ].join('\n'),
     )
     .setVersion('1.0')
-    .addBearerAuth()
+    .setContact(
+      'IT Platform',
+      'https://github.com/UsachevDev/it-platform-diploma',
+      '',
+    )
+    .addBearerAuth({
+      type: 'http',
+      scheme: 'bearer',
+      bearerFormat: 'JWT',
+      description: 'Вставьте JWT, полученный при логине или регистрации',
+    })
+    .addTag('Auth', 'Регистрация, вход и получение текущего пользователя')
+    .addTag('Users', 'Профиль пользователя: просмотр и редактирование')
+    .addTag('Projects', 'Проекты: создание, список, смена статусов')
+    .addTag('Bids', 'Отклики исполнителей на проекты')
+    .addTag('Admin', 'Администрирование: пользователи, модерация, статистика')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  SwaggerModule.setup('api/docs', app, document, {
+    swaggerOptions: {
+      persistAuthorization: true,
+      tagsSorter: 'alpha',
+      operationsSorter: 'alpha',
+    },
+    customSiteTitle: 'IT Platform API — документация',
+  });
 
   const port = 3000;
 

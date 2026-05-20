@@ -23,7 +23,9 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UpdateEmailDto } from './dto/update-email.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserEntity } from './entities/user.entity';
 import { UsersService } from './users.service';
+import { MessageResponseEntity } from '../common/swagger/common.entity';
 
 type AuthRequest = Request & {
   user: {
@@ -43,6 +45,7 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiOkResponse({
     description: 'Профиль текущего пользователя успешно получен',
+    type: UserEntity,
   })
   @ApiUnauthorizedResponse({ description: 'Пользователь не авторизован' })
   @UseGuards(JwtAuthGuard)
@@ -55,7 +58,7 @@ export class UsersController {
 
   @ApiOperation({ summary: 'Обновить профиль текущего пользователя' })
   @ApiBearerAuth()
-  @ApiOkResponse({ description: 'Профиль успешно обновлён' })
+  @ApiOkResponse({ description: 'Профиль успешно обновлён', type: UserEntity })
   @ApiUnauthorizedResponse({ description: 'Пользователь не авторизован' })
   @UseGuards(JwtAuthGuard)
   @Patch('me')
@@ -67,7 +70,7 @@ export class UsersController {
 
   @ApiOperation({ summary: 'Сменить email (требуется текущий пароль)' })
   @ApiBearerAuth()
-  @ApiOkResponse({ description: 'Email успешно изменён' })
+  @ApiOkResponse({ description: 'Email успешно изменён', type: UserEntity })
   @ApiBadRequestResponse({ description: 'Некорректные данные' })
   @ApiUnauthorizedResponse({
     description: 'Пользователь не авторизован или неверный текущий пароль',
@@ -83,7 +86,10 @@ export class UsersController {
 
   @ApiOperation({ summary: 'Сменить пароль (требуется текущий пароль)' })
   @ApiBearerAuth()
-  @ApiOkResponse({ description: 'Пароль успешно изменён' })
+  @ApiOkResponse({
+    description: 'Пароль успешно изменён',
+    type: MessageResponseEntity,
+  })
   @ApiBadRequestResponse({ description: 'Некорректные данные' })
   @ApiUnauthorizedResponse({
     description: 'Пользователь не авторизован или неверный текущий пароль',
@@ -107,6 +113,7 @@ export class UsersController {
   })
   @ApiOkResponse({
     description: 'Публичный профиль пользователя успешно получен',
+    type: UserEntity,
   })
   @ApiNotFoundResponse({ description: 'Пользователь не найден' })
   @Get(':id')
