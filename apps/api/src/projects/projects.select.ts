@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 export const projectSelect = {
   id: true,
   customerId: true,
+  categoryId: true,
   title: true,
   description: true,
   budgetMin: true,
@@ -25,6 +26,13 @@ export const projectSelect = {
       name: true,
       email: true,
       role: true,
+    },
+  },
+  category: {
+    select: {
+      id: true,
+      name: true,
+      slug: true,
     },
   },
   _count: {

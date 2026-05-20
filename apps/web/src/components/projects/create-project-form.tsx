@@ -2,9 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 
+import { SelectMenu } from "@/components/common/select-menu";
+import { getCategoriesRequest } from "@/lib/api/categories";
 import { createProjectRequest } from "@/lib/api/projects";
 import { getApiErrorMessage } from "@/lib/api/errors";
 import { showErrorToast, showSuccessToast } from "@/lib/toast";
@@ -24,7 +26,22 @@ export function CreateProjectForm() {
   const [description, setDescription] = useState("");
   const [budgetMin, setBudgetMin] = useState("");
   const [budgetMax, setBudgetMax] = useState("");
+  const [categoryId, setCategoryId] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
+
+  const { data: categories } = useQuery({
+    queryKey: ["categories"],
+    queryFn: getCategoriesRequest,
+    staleTime: 5 * 60_000,
+  });
+
+  const categoryOptions = [
+    { value: "", label: "Без категории" },
+    ...(categories ?? []).map((category) => ({
+      value: category.id,
+      label: category.name,
+    })),
+  ];
 
   const mutation = useMutation({
     mutationFn: createProjectRequest,
@@ -88,6 +105,7 @@ export function CreateProjectForm() {
       description: description.trim(),
       budgetMin: Number(budgetMin),
       budgetMax: Number(budgetMax),
+      categoryId: categoryId || undefined,
     });
   }
 
@@ -131,6 +149,16 @@ export function CreateProjectForm() {
             {description.trim().length} / 5000
           </p>
         )}
+      </div>
+
+      <div className="space-y-2">
+        <span className="text-sm font-medium">Категория</span>
+        <SelectMenu
+          ariaLabel="Категория проекта"
+          value={categoryId}
+          options={categoryOptions}
+          onChange={setCategoryId}
+        />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

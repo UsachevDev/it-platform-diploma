@@ -12,9 +12,16 @@ export type ProjectUserRef = {
   role: UserRole;
 };
 
+export type ProjectCategory = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
 export type Project = {
   id: string;
   customerId: string;
+  categoryId: string | null;
   title: string;
   description: string;
   budgetMin: number;
@@ -25,6 +32,7 @@ export type Project = {
   updatedAt: string;
   customer: ProjectUserRef;
   selectedContractor: ProjectUserRef | null;
+  category: ProjectCategory | null;
   _count: {
     bids: number;
   };
@@ -52,6 +60,7 @@ export type GetProjectsQuery = {
   sortBy?: ProjectSortBy;
   mine?: boolean;
   responded?: boolean;
+  categoryId?: string;
 };
 
 export type CreateProjectDto = {
@@ -59,6 +68,7 @@ export type CreateProjectDto = {
   description: string;
   budgetMin: number;
   budgetMax: number;
+  categoryId?: string;
 };
 
 export type UpdateProjectDto = Partial<CreateProjectDto>;

@@ -7,6 +7,7 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  IsUUID,
   Max,
   Min,
 } from 'class-validator';
@@ -114,4 +115,11 @@ export class GetProjectsQueryDto {
   @Transform(toBoolean)
   @IsBoolean()
   responded?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Фильтр по ID категории',
+  })
+  @IsOptional()
+  @IsUUID()
+  categoryId?: string;
 }

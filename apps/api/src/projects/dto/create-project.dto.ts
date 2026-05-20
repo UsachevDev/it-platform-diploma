@@ -1,6 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
-import { IsInt, IsNotEmpty, IsString, Length, Max, Min } from 'class-validator';
+import {
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Length,
+  Max,
+  Min,
+} from 'class-validator';
 
 const trimString = ({ value }: { value: unknown }): unknown =>
   typeof value === 'string' ? value.trim() : value;
@@ -50,4 +59,13 @@ export class CreateProjectDto {
   @Min(0)
   @Max(100000000)
   budgetMax: number;
+
+  @ApiProperty({
+    example: 'e1f2a3b4-0000-0000-0000-000000000000',
+    required: false,
+    description: 'ID категории проекта',
+  })
+  @IsOptional()
+  @IsUUID()
+  categoryId?: string;
 }

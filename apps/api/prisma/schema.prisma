@@ -47,9 +47,19 @@ model User {
   @@index([createdAt])
 }
 
+model Category {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @unique @db.VarChar(80)
+  slug      String   @unique @db.VarChar(80)
+  createdAt DateTime @default(now())
+
+  projects Project[]
+}
+
 model Project {
   id                   String        @id @default(uuid()) @db.Uuid
   customerId           String        @db.Uuid
+  categoryId           String?       @db.Uuid
   title                String        @db.VarChar(120)
   description          String
   budgetMin            Int?
@@ -59,12 +69,14 @@ model Project {
   createdAt            DateTime      @default(now())
   updatedAt            DateTime      @updatedAt
 
-  customer           User   @relation("CustomerProjects", fields: [customerId], references: [id], onDelete: Cascade)
-  selectedContractor User?  @relation("SelectedContractorProjects", fields: [selectedContractorId], references: [id], onDelete: SetNull)
+  customer           User      @relation("CustomerProjects", fields: [customerId], references: [id], onDelete: Cascade)
+  selectedContractor User?     @relation("SelectedContractorProjects", fields: [selectedContractorId], references: [id], onDelete: SetNull)
+  category           Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   bids               Bid[]
 
   @@index([customerId])
   @@index([selectedContractorId])
+  @@index([categoryId])
   @@index([status, createdAt])
 }
 

@@ -8,12 +8,31 @@ export class ProjectCountEntity {
   bids: number;
 }
 
+export class ProjectCategoryEntity {
+  @ApiProperty({ example: 'e1f2a3b4-0000-0000-0000-000000000000' })
+  id: string;
+
+  @ApiProperty({ example: 'Веб-разработка' })
+  name: string;
+
+  @ApiProperty({ example: 'web' })
+  slug: string;
+}
+
 export class ProjectEntity {
   @ApiProperty({ example: 'a1b2c3d4-0000-0000-0000-000000000000' })
   id: string;
 
   @ApiProperty({ example: 'b1a2c3d4-0000-0000-0000-000000000000' })
   customerId: string;
+
+  @ApiProperty({
+    type: String,
+    nullable: true,
+    example: 'e1f2a3b4-0000-0000-0000-000000000000',
+    description: 'ID категории проекта',
+  })
+  categoryId: string | null;
 
   @ApiProperty({ example: 'Разработка MVP веб-платформы' })
   title: string;
@@ -49,6 +68,9 @@ export class ProjectEntity {
 
   @ApiProperty({ type: UserRefEntity, nullable: true })
   selectedContractor: UserRefEntity | null;
+
+  @ApiProperty({ type: ProjectCategoryEntity, nullable: true })
+  category: ProjectCategoryEntity | null;
 
   @ApiProperty({ type: ProjectCountEntity })
   _count: ProjectCountEntity;
