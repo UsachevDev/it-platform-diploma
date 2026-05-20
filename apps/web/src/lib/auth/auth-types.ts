@@ -1,4 +1,4 @@
-export type UserRole = "CUSTOMER" | "CONTRACTOR";
+export type UserRole = "CUSTOMER" | "CONTRACTOR" | "ADMIN";
 
 export type AuthUser = {
   id: string;

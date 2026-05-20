@@ -30,4 +30,11 @@ export class UsersRepository {
       data,
     });
   }
+
+  unblock(id: string): Promise<User> {
+    return this.prismaService.user.update({
+      where: { id },
+      data: { isBlocked: false, blockReason: null, blockedUntil: null },
+    });
+  }
 }

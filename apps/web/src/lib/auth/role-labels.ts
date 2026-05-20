@@ -6,6 +6,8 @@ export function getRoleLabel(role?: UserRole | null) {
       return "Заказчик";
     case "CONTRACTOR":
       return "Исполнитель";
+    case "ADMIN":
+      return "Администратор";
     default:
       return "Неизвестно";
   }

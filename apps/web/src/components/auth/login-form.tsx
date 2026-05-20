@@ -53,12 +53,14 @@ export function LoginForm() {
     setIsSubmitting(true);
 
     try {
-      await login({
+      const response = await login({
         email: email.trim(),
         password,
       });
 
-      router.push("/dashboard");
+      router.push(
+        response.user.role === "ADMIN" ? "/admin/stats" : "/dashboard",
+      );
     } catch (submitError) {
       setError(
         getApiErrorMessage(
