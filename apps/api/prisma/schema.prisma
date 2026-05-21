@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  CUSTOMER
+  CONTRACTOR
+  ADMIN
+}
+
+enum ProjectStatus {
+  OPEN
+  IN_WORK
+  DONE
+  CANCELED
+}
+
+enum BidStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum NotificationType {
+  BID_RECEIVED
+  BID_ACCEPTED
+  BID_REJECTED
+  PROJECT_COMPLETED
+  REVIEW_RECEIVED
+}
+
+model User {
+  id                  String    @id @default(uuid()) @db.Uuid
+  email               String    @unique
+  passwordHash        String
+  role                UserRole
+  name                String    @db.VarChar(100)
+  about               String?
+  isBlocked           Boolean   @default(false)
+  blockReason         String?
+  blockedUntil        DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  customerProjects    Project[]   @relation("CustomerProjects")
+  contractorBids      Bid[]       @relation("ContractorBids")
+  selectedForProjects Project[]   @relation("SelectedContractorProjects")
+  userSkills          UserSkill[]
+  authoredReviews     Review[]    @relation("AuthoredReviews")
+  receivedReviews     Review[]    @relation("ReceivedReviews")
+  notifications       Notification[]
+
+  @@index([role])
+  @@index([createdAt])
+}
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @db.Uuid
+  type      NotificationType
+  title     String           @db.VarChar(160)
+  message   String
+  link      String?
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+}
+
+model Review {
+  id        String   @id @default(uuid()) @db.Uuid
+  projectId String   @db.Uuid
+  authorId  String   @db.Uuid
+  targetId  String   @db.Uuid
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  author  User    @relation("AuthoredReviews", fields: [authorId], references: [id], onDelete: Cascade)
+  target  User    @relation("ReceivedReviews", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, authorId])
+  @@index([targetId])
+  @@index([projectId])
+}
+
+model Skill {
+  id        String      @id @default(uuid()) @db.Uuid
+  name      String      @unique @db.VarChar(50)
+  createdAt DateTime    @default(now())
+
+  userSkills UserSkill[]
+}
+
+model UserSkill {
+  userId  String @db.Uuid
+  skillId String @db.Uuid
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([userId, skillId])
+  @@index([skillId])
+}
+
+model Category {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @unique @db.VarChar(80)
+  slug      String   @unique @db.VarChar(80)
+  createdAt DateTime @default(now())
+
+  projects Project[]
+}
+
+model Project {
+  id                   String        @id @default(uuid()) @db.Uuid
+  customerId           String        @db.Uuid
+  categoryId           String?       @db.Uuid
+  title                String        @db.VarChar(120)
+  description          String
+  budgetMin            Int?
+  budgetMax            Int?
+  status               ProjectStatus @default(OPEN)
+  selectedContractorId String?       @db.Uuid
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  customer           User      @relation("CustomerProjects", fields: [customerId], references: [id], onDelete: Cascade)
+  selectedContractor User?     @relation("SelectedContractorProjects", fields: [selectedContractorId], references: [id], onDelete: SetNull)
+  category           Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  bids               Bid[]
+  reviews            Review[]
+
+  @@index([customerId])
+  @@index([selectedContractorId])
+  @@index([categoryId])
+  @@index([status, createdAt])
+}
+
+model Bid {
+  id           String    @id @default(uuid()) @db.Uuid
+  projectId    String    @db.Uuid
+  contractorId String    @db.Uuid
+  price        Int
+  durationDays Int
+  coverLetter  String
+  status       BidStatus @default(PENDING)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  contractor User    @relation("ContractorBids", fields: [contractorId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, contractorId])
+  @@index([projectId])
+  @@index([contractorId])
+  @@index([status, createdAt])
+}

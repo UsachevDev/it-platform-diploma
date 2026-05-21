@@ -4,4 +4,4 @@ dist
 .env.*
 coverage
 .next
-prisma/migrations
+.claude

@@ -3,5 +3,18 @@
   "private": true,
   "workspaces": [
     "apps/*"
-  ]
+  ],
+  "scripts": {
+    "dev:api": "npm --prefix apps/api run start:dev",
+    "build:api": "npm --prefix apps/api run build",
+    "lint:api": "npm --prefix apps/api run lint",
+    "format:api": "npm --prefix apps/api run format",
+    "seed:demo": "npm --prefix apps/api run seed:demo",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v && docker compose up -d"
+  },
+  "dependencies": {
+    "@nestjs/config": "^1.1.5"
+  }
 }
