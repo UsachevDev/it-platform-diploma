@@ -62,9 +62,3 @@ flowchart TD
 
 **Инфраструктура**
 - Docker Compose поднимает PostgreSQL и pgAdmin.
-
-## Как посмотреть
-
-Диаграмма выше — на языке Mermaid. Открыть: на GitHub (рендерится
-автоматически), на https://mermaid.live (с экспортом в PNG/SVG) или в VS Code
-с расширением *Markdown Preview Mermaid Support*.

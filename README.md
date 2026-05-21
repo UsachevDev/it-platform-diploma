@@ -360,7 +360,7 @@ npm --prefix apps/api run test:e2e
 
 ## Документация проекта
 
-В каталоге [`docs/`](docs/) собрана документация для защиты:
+Дополнительная документация — в каталоге [`docs/`](docs/):
 
 | Файл | Содержание |
 |------|-----------|
@@ -368,9 +368,6 @@ npm --prefix apps/api run test:e2e
 | [docs/architecture.md](docs/architecture.md) | Диаграмма архитектуры приложения |
 | [docs/demo-scenario.md](docs/demo-scenario.md) | Пошаговый сценарий демонстрации |
 | [docs/what-implemented.md](docs/what-implemented.md) | Сводка реализованной функциональности |
-
-Mermaid-диаграммы рендерятся на GitHub автоматически; для экспорта в PNG/SVG
-можно использовать https://mermaid.live.
 
 ---
 

@@ -110,9 +110,3 @@ erDiagram
 | Project → Review | 1:N | Отзывы по проекту |
 | User → Review (author/target) | 1:N | Автор и получатель отзыва |
 | User → Notification | 1:N | Уведомления пользователя |
-
-## Как посмотреть красиво
-
-- **GitHub** — открыть этот файл в репозитории, диаграмма рендерится автоматически.
-- **mermaid.live** — скопировать блок ` ```mermaid ` на https://mermaid.live, там же экспорт в **PNG/SVG** для ВКР.
-- **VS Code** — расширение *Markdown Preview Mermaid Support*, затем превью этого файла.
